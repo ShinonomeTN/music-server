@@ -81,7 +81,7 @@ class CoverArtApi(private val coverArtService: CoverArtService) {
 
     private val pathSegmentBlackList = setOf(".", "..")
 
-    @KtorRoute("/api/cover-art/{path...}")
+    @KtorRoute("/{path...}")
     fun Route.getCoverArt() = get {
         val path = call.parameters.getAll("path")?.takeIf { it.isNotEmpty() } ?: return@get call.respond(HttpStatusCode.BadRequest)
         val realPath = path.filter { it.isNotBlank() && !pathSegmentBlackList.contains(it) }.takeIf { it.isNotEmpty() }?.joinToString("/") { it }
