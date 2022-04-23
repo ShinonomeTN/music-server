@@ -1,0 +1,56 @@
+buildscript {
+    ext.kotlin_version = "1.4.32"
+    ext.ktor_version = '1.5.3'
+    ext.exposed_version = '0.36.1'
+    ext.jackson_version = '2.10.3'
+    ext.koemans_version = '1.1.1-SNAPSHOT'
+
+    ext.java_version = "1.8"
+}
+
+plugins {
+    id "org.jetbrains.kotlin.jvm" version "$kotlin_version"
+}
+
+allprojects {
+    repositories {
+        mavenLocal()
+        mavenCentral()
+        maven {
+            url = "https://nexus.shinonometn.com/repository/maven-public/"
+
+        }
+    }
+
+//    apply plugin: 'maven'
+
+    group = 'com.shinonometn'
+    version = '1.0-SNAPSHOT'
+}
+
+subprojects {
+
+    apply plugin: 'java'
+    apply plugin: 'org.jetbrains.kotlin.jvm'
+
+    sourceCompatibility = java_version
+    targetCompatibility = java_version
+
+    tasks.withType(JavaCompile) {
+        options.encoding = 'UTF-8'
+    }
+
+    dependencies {
+        testImplementation group: 'org.jetbrains.kotlin', name: 'kotlin-test-junit', version: kotlin_version
+
+        testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
+        testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+    }
+
+    compileKotlin { kotlinOptions.jvmTarget = java_version }
+    compileTestKotlin { kotlinOptions.jvmTarget = java_version }
+
+    test {
+        useJUnitPlatform()
+    }
+}

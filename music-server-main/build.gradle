@@ -1,0 +1,5 @@
+description = "Music server main"
+
+dependencies {
+    implementation project(':music-server-commons')
+}
