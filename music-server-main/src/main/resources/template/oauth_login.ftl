@@ -1,0 +1,3 @@
+<body>
+${session.userAgent}
+</body>

@@ -2,4 +2,6 @@ description = "Music server main"
 
 dependencies {
     implementation project(':music-server-commons')
+    implementation "com.shinonometn:ktor-server-access-control:1.1-SNAPSHOT"
+    compile group: 'org.mindrot', name: 'jbcrypt', version:'0.4'
 }

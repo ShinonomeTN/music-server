@@ -13,6 +13,7 @@ dependencies {
     compile "io.ktor:ktor-jackson:${ktor_version}"
     compile "io.ktor:ktor-auth:${ktor_version}"
     compile "io.ktor:ktor-server-sessions:$ktor_version"
+    compile group: 'io.ktor', name: 'ktor-freemarker', version: ktor_version
 
     compile 'ch.qos.logback:logback-classic:1.2.3'
 

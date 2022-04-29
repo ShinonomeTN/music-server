@@ -4,8 +4,17 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Configuration
 
 @Configuration
-open class MetaConfiguration {
+open class MetaConfiguration(private val deployConfig : DeploymentConfiguration) {
 
-    @Value("\${application.hostname:localhost}")
-    var hostname : String = "localhost"
+    @Value("\${application.hostname:}")
+    var hostname : String = ""
+
+    private val commonPorts = listOf(80, 443)
+    fun resolveHostName() : String {
+        return when {
+            hostname.isNotBlank() -> hostname
+            deployConfig.port in commonPorts -> deployConfig.host
+            else -> "${deployConfig.host}:${deployConfig.port}"
+        }
+    }
 }
