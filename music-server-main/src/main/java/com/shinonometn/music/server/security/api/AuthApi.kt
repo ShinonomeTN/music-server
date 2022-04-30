@@ -21,6 +21,9 @@ import io.ktor.util.*
 import org.apache.commons.codec.binary.Base64
 import org.springframework.stereotype.Controller
 import sun.net.www.protocol.http.HttpURLConnection.userAgent
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.ZoneOffset
 import java.util.concurrent.TimeUnit
 
 @Controller
@@ -114,7 +117,7 @@ class AuthApi(
             "error" to mapOf(
                 "message" to Base64.encodeBase64String(message.toByteArray()),
                 "details" to parameters
-            )
+            ),
         )
 
         respond(
@@ -127,12 +130,24 @@ class AuthApi(
         )
     }
 
+    @KtorRoute("/config/{path...}")
+    fun Route.textResources() {
+        get {
+            val path = call.parameters.getAll("path")?.joinToString("/") { it } ?: ""
+            val model = mapOf(
+                "scopeDescriptions" to AC.Scope.scopeDescriptions,
+                "path" to path
+            )
+            call.respond(FreeMarkerContent("text_resources.ftl", model, contentType = ContentType.Text.Any))
+        }
+    }
+
     @KtorRoute
     fun Route.oauth() {
         val tempSessionTimeoutSeconds = TimeUnit.MINUTES.toSeconds(5)
 
         // The login page
-        // input : user_agent, scope
+        // input : user_agent, scope, redirect
         get {
             val session = call.acUserSession
 
@@ -146,24 +161,23 @@ class AuthApi(
             if (session != null) {
                 val tempSession = OAuthSession(
                     session.userId,
+                    requestForm.redirect,
                     System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(tempSessionTimeoutSeconds),
                     userAgent,
                     requestForm.scope
                 )
 
-                return@get call.respondRedirect(url {
-                    protocol = URLProtocol.createOrDefault(call.request.origin.scheme)
-                    host = call.request.origin.host
-                    path("api", "auth")
-                    parameters.append(OAuthSession.ParameterKey, tempSession.sign(config.sessionSalt))
-                })
+                return@get call.respondRedirect("/api/auth?${OAuthSession.ParameterKey}=${tempSession.sign(config.sessionSalt)}")
             }
 
             val modal = mapOf(
                 "session" to mapOf(
                     "userAgent" to requestForm.userAgent,
-                    "scopes" to requestForm.scope
-                )
+                    "scopes" to requestForm.scope,
+                    "redirect" to requestForm.redirect
+                ),
+                "state" to "pre_login",
+                "scopeDescriptions" to AC.Scope.scopeDescriptions
             )
             call.respond(
                 FreeMarkerContent(
@@ -175,6 +189,7 @@ class AuthApi(
             )
         }
 
+        // OAuth login action
         post {
             val oauthParams = try {
                 OAuthRequestForm.from(call)
@@ -185,36 +200,36 @@ class AuthApi(
             val form = call.receiveParameters()
             val loginForm = try {
                 LoginRequest(form)
-            } catch (e : ParamValidationException) {
-                return@post call.respondOAuthError("Parameter Validation Error.", mapOf(
-                    "to" to "user",
-                    "recover" to listOf("retry"),
-                    "error" to e.error,
-                    "message" to e.message
-                ))
+            } catch (e: ParamValidationException) {
+                return@post call.respondOAuthError(
+                    "Parameter Validation Error.", mapOf(
+                        "to" to "user",
+                        "recover" to listOf("retry"),
+                        "error" to e.error,
+                        "message" to e.message
+                    )
+                )
             }
 
             val user = userService.login(loginForm.username, loginForm.password)
-                ?: return@post call.respondOAuthError("Invalid username or password.", mapOf(
-                    "to" to "user",
-                    "recover" to listOf("retry"),
-                    "error" to "invalid_credentials",
-                    "message" to "invalid_username_or_password"
-                ))
+                ?: return@post call.respondOAuthError(
+                    "Invalid username or password.", mapOf(
+                        "to" to "user",
+                        "recover" to listOf("retry"),
+                        "error" to "invalid_credentials",
+                        "message" to "invalid_username_or_password"
+                    )
+                )
 
             val session = OAuthSession(
                 user.id,
+                oauthParams.redirect,
                 System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(tempSessionTimeoutSeconds),
                 userAgent,
                 oauthParams.scope
             )
 
-            call.respondRedirect(url {
-                protocol = URLProtocol.createOrDefault(call.request.origin.scheme)
-                host = call.request.origin.host
-                path("api", "auth")
-                parameters.append(OAuthSession.ParameterKey, session.sign(config.sessionSalt))
-            })
+            call.respondRedirect("/api/auth?${OAuthSession.ParameterKey}=${session.sign(config.sessionSalt)}")
         }
 
         // Confirming OAuth permissions
@@ -223,7 +238,8 @@ class AuthApi(
             get {
                 // Check ts exists
                 try {
-                    val tempSession = OAuthSession.from(call.parameters["__ts"], config.sessionSalt)
+                    val ts = call.parameters["__ts"]
+                    val tempSession = OAuthSession.from(ts, config.sessionSalt)
 
                     // Check user state
                     val user = userService.findUserById(tempSession.userId) ?: throw OAuthParameterError(
@@ -245,6 +261,8 @@ class AuthApi(
                     val modal = mapOf(
                         "user" to user,
                         "session" to tempSession,
+                        "sessionSigned" to ts,
+                        "state" to "after_login",
                         "scopeDescriptionJson" to AC.Scope.scopeDescriptions
                     )
                     call.respond(
@@ -267,6 +285,52 @@ class AuthApi(
                         )
                     )
                 }
+            }
+        }
+
+        // OAuth allow action
+        param("action", "allow") {
+            post {
+                val ts = call.receiveParameters()["ts"] ?: return@post call.respondOAuthError(
+                    "Invalid Temp Session", mapOf(
+                        "to" to "maintainer",
+                        "recover" to listOf("reject")
+                    )
+                )
+
+                val tempSession = try {
+                    OAuthSession.from(ts, config.sessionSalt)
+                } catch (e: OAuthParameterError) {
+                    return@post call.respondOAuthError(e.message!!, e.parameters)
+                }
+
+                val token = userService.registerApiToken(
+                    tempSession.userId,
+                    tempSession.userAgent,
+                    tempSession.scope,
+                    LocalDateTime.now().plusSeconds(config.appTokenTimeoutSeconds)
+                )
+
+                val appToken =
+                    AppToken(token.id, token.userAgent, token.userId, token.scope, token.expiredAt.toInstant(ZoneOffset.UTC).toEpochMilli())
+                val stringToken = appToken.sign(config.appTokenSalt)
+
+                val redirect = tempSession.redirect
+                if (redirect != "internal") return@post call.respondRedirect("$redirect?state=success&token=${stringToken}&from=com.shinonometn.music.server")
+                call.respondRedirect("/api/auth?state=success&token=${stringToken}&from=com.shinonometn.music.server")
+            }
+        }
+
+        param("state", "success") {
+            get {
+                call.respond(
+                    FreeMarkerContent(
+                        "oauth_success.ftl", mapOf(
+                            "modal" to "",
+                            "modalJson" to "{}"
+                        )
+                    )
+                )
             }
         }
     }

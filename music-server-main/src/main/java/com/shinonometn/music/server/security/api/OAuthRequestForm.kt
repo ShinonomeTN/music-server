@@ -4,7 +4,7 @@ import com.shinonometn.music.server.security.commons.AC
 import io.ktor.application.*
 import io.ktor.request.*
 
-class OAuthRequestForm(val userAgent: String, val scope: Set<String>) {
+class OAuthRequestForm(val userAgent: String, val scope: Set<String>, val redirect : String) {
 
     companion object {
         fun from(call: ApplicationCall): OAuthRequestForm {
@@ -30,7 +30,15 @@ class OAuthRequestForm(val userAgent: String, val scope: Set<String>) {
                     )
                 )
 
-            return OAuthRequestForm(userAgent, scopeList)
+            val redirect = call.parameters["redirect"] ?: throw OAuthParameterError(
+                "Invalid Redirect Address. An url or 'internal' should provided.",
+                mapOf(
+                    "to" to "developer",
+                    "recover" to listOf("reject")
+                )
+            )
+
+            return OAuthRequestForm(userAgent, scopeList, redirect)
         }
     }
 }

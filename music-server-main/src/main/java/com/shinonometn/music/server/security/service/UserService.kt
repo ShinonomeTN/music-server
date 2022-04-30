@@ -65,15 +65,13 @@ class UserService(private val database: SqlDatabase) {
         }
     }
 
-    fun registerApiToken(userId: Long, userAgent: String, scope: Set<String>, expireAt: LocalDateTime) {
-        return database {
-            AppTokenData.Bean(AppTokenData.Entity.new {
-                this.userId = userId
-                this.userAgent = userAgent
-                this.scope = scope.joinToString(",") { it }
-                this.expiredAt = expireAt
-            })
-        }
+    fun registerApiToken(userId: Long, userAgent: String, scope: Set<String>, expireAt: LocalDateTime) = database {
+        AppTokenData.Bean(AppTokenData.Entity.new {
+            this.userId = userId
+            this.userAgent = userAgent
+            this.scope = scope
+            this.expiredAt = expireAt
+        })
     }
 
     fun refreshApiToken(tokenId: Long, userAgent: String, scope: Set<String>, expireAt: LocalDateTime) = database {

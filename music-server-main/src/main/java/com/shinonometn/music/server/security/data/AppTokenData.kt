@@ -38,7 +38,10 @@ object AppTokenData {
 
         var userAgent by Table.colUserAgent
         var userId by Table.colUserId
-        var scope by Table.colScope
+        var scope : Set<String> by Table.colScope.transform(
+            { it.joinToString(",") },
+            { it.split(",").toSet() }
+        )
         var expiredAt by Table.colExpiredAt
         var createAt by Table.colCreateAt
     }
