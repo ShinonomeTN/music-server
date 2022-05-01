@@ -37,13 +37,13 @@ object AC {
             "description" to "Create new playlists."
         }),
 
-        PlayListRead("read_playlist", true, Jackson {
+        PlayListRead("read_playlist", false, Jackson {
             "title" to "Read playlists"
             "description" to "Read your playlists, including private playlists."
         }),
 
         PlayListUpdate("update_playlist", false, Jackson {
-            "description" to "Update playlists"
+            "title" to "Update playlists"
             "description" to "Update your playlist."
         }),
         PlayListDelete("delete_playlist", false, Jackson {
@@ -105,13 +105,13 @@ private fun UserData.Bean.resourceObject(): JsonNode? {
 
 private fun UserData.Bean.permissionList(): List<String> {
     val permission = resourceObject() ?: return emptyList()
-    val list = permission[AC.Constants.PERMISSION].takeIf { it.isArray } ?: return emptyList()
+    val list = permission[AC.Constants.PERMISSION]?.takeIf { it.isArray } ?: return emptyList()
     return list.map { it.asText() }
 }
 
 private fun UserData.Bean.roleList(): List<String> {
     val role = resourceObject() ?: return emptyList()
-    val list = role[AC.Constants.ROLE].takeIf { it.isArray } ?: return emptyList()
+    val list = role[AC.Constants.ROLE]?.takeIf { it.isArray } ?: return emptyList()
     return list.map { it.asText() }
 }
 

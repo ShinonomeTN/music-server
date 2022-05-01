@@ -8,6 +8,7 @@ import com.shinonometn.koemans.utils.isBoolean
 import com.shinonometn.koemans.utils.isNumber
 import com.shinonometn.koemans.web.Validator
 import com.shinonometn.koemans.web.spring.route.KtorRoute
+import com.shinonometn.ktor.server.access.control.accessControl
 import com.shinonometn.music.server.commons.CR
 import com.shinonometn.music.server.commons.validationError
 import com.shinonometn.music.server.media.data.PlaylistItemData
@@ -73,18 +74,19 @@ class PlaylistApi(private val playlistService: PlaylistService, private val user
     }
 
     @KtorRoute("/{id}")
-    fun Route.getPlaylist() = accessControl(AC.Scope.PlayListRead) {
-        get {
-            val id = call.parameters["id"]!!.toLong()
-            val result = background {
-                playlistService.findById(id)
-            } ?: validationError("invalid_id")
+    fun Route.getPlaylist() = get {
+        val id = call.parameters["id"]!!.toLong()
+        val result = background { playlistService.findById(id) } ?: validationError("invalid_id")
 
-            if(result.isPrivate) CR.Error.forbidden()
-
-            val creator = userService.findProfileBeanOf(result.creatorId)
-            call.respond(mapOf("playlist" to result, "creator" to creator))
+        if(result.isPrivate) {
+            val userIdentity = call.acUserIdentity ?: CR.Error.forbidden()
+            if(result.creatorId != userIdentity.userId) CR.Error.forbidden("playlist_is_private")
+            val appToken = call.appToken
+            if(appToken != null && !appToken.scope.contains(AC.Scope.PlayListRead.scopeName)) CR.Error.forbidden()
         }
+
+        val creator = userService.findProfileBeanOf(result.creatorId)
+        call.respond(mapOf("playlist" to result, "creator" to creator))
     }
 
     @KtorRoute("/{id}")

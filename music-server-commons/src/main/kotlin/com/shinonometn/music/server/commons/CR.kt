@@ -12,7 +12,7 @@ object CR {
         fun noAppToken(): Nothing = throw BusinessException("no_app_token", "unexpected_error")
 
         fun unauthenticated(): Nothing = throw BusinessException("unauthenticated", "unauthenticated")
-        fun forbidden(): Nothing = throw BusinessException("forbidden", "forbidden")
+        fun forbidden(message : String = "forbidden"): Nothing = throw BusinessException("forbidden", message)
     }
 
     internal val self = CR

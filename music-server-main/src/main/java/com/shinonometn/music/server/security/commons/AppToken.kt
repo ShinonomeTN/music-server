@@ -22,12 +22,12 @@ class AppToken(val tokenId: Long, val userAgent: String, override val userId: Lo
             val (content, sign) = string.split(".")
                 .takeIf { it.size == 2 } ?: throw IllegalArgumentException("Invalid token format")
 
-            val decodedContent = Base64.decodeBase64(content)
+            val decodedContent = String(Base64.decodeBase64(content))
             val decodedSign = Base64.decodeBase64(sign)
-            val newSign = DigestUtils.sha256("$content:$secret".toByteArray())
+            val newSign = DigestUtils.sha256("$decodedContent:$secret".toByteArray())
             if (!newSign.contentEquals(decodedSign)) throw IllegalArgumentException("Invalid token signature")
 
-            val (tokenId, encodedUserAgent, userId, scope, expireAt) = String(decodedContent)
+            val (tokenId, encodedUserAgent, userId, scope, expireAt) = decodedContent
                 .split(":")
                 .takeIf { it.size == 5 } ?: throw IllegalArgumentException("Invalid token format")
 

@@ -163,7 +163,7 @@ class AuthApi(
                     session.userId,
                     requestForm.redirect,
                     System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(tempSessionTimeoutSeconds),
-                    userAgent,
+                    requestForm.userAgent,
                     requestForm.scope
                 )
 
@@ -225,7 +225,7 @@ class AuthApi(
                 user.id,
                 oauthParams.redirect,
                 System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(tempSessionTimeoutSeconds),
-                userAgent,
+                oauthParams.userAgent,
                 oauthParams.scope
             )
 
