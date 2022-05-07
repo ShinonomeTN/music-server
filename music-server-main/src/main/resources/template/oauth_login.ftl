@@ -41,6 +41,7 @@
                 <div class="mb-3">
                     <label for="usernameInput" class="form-label">Username</label>
                     <input v-model="form.username.value" @focusout='checkForm(form.username)' name="username" id="username" placeholder="Username"
+                           autocomplete="false" autocapitalize="off"
                            class="form-control" id="usernameInput" aria-describedby="emailHelp">
                     <div v-if="form.username.error" class="form-text text-danger">
                         {{form.username.error}}
