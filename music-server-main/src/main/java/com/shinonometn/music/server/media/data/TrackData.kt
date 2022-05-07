@@ -69,7 +69,6 @@ object TrackData {
         val trackNumber = entity.trackNumber
 
         val albumId = entity.albumId?.value
-        val album = entity.album?.let { AlbumData.Bean(it) }
 
         var recordings : Collection<RecordingData.Bean>? = entity.recordings.map { RecordingData.Bean(it) }
             private set

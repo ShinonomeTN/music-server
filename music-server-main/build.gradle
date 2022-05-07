@@ -1,4 +1,11 @@
+plugins {
+    id "application"
+}
+
+
 description = "Music server main"
+
+mainClassName = "com.shinonometn.music.server.MainKt"
 
 dependencies {
     implementation project(':music-server-commons')
