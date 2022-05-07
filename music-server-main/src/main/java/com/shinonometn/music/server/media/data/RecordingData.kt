@@ -15,6 +15,10 @@ object RecordingData {
         return Entity.find { Table.colTrackId eq id }.map { Bean(it) }
     }
 
+    fun deleteByTrackId(id: Long): Int {
+        return Table.deleteWhere { Table.colTrackId eq id }
+    }
+
     object Table : LongIdTable("tb_recording_data") {
         val colTrackId = reference("track_id", TrackData.Table)
 

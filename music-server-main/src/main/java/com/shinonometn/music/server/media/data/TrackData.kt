@@ -10,6 +10,7 @@ import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.sql.SortOrder
+import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.selectAll
 
@@ -31,6 +32,10 @@ object TrackData {
         return Table.select {
             Table.colAlbumId eq id
         }.orderBy(Table.colDiskNumber to SortOrder.ASC, Table.colTrackNumber to SortOrder.ASC).map { Bean(Entity.wrapRow(it)) }
+    }
+
+    fun deleteById(id: Long): Int {
+        return Table.deleteWhere { Table.id eq id }
     }
 
     object Table : LongIdMetaDataTable("tb_track_data") {

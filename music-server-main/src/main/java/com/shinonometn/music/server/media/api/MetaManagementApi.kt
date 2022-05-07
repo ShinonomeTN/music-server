@@ -102,6 +102,14 @@ class MetaManagementApi(private val service: MetaManagementService) {
                     }
                     call.respond(mapOf("track" to result))
                 }
+
+                delete {
+                    val id = call.parameters["id"]?.toLongOrNull() ?: businessError("id_should_be_number")
+                    val result = background {
+                        service.deleteTrack(id)
+                    }
+                    call.respond(mapOf("track" to result))
+                }
             }
         }
     }
