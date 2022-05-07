@@ -71,7 +71,16 @@ object TrackData {
         val albumId = entity.albumId?.value
         val album = entity.album?.let { AlbumData.Bean(it) }
 
-        val recordings = entity.recordings.map { RecordingData.Bean(it) }
+        var recordings : Collection<RecordingData.Bean>? = entity.recordings.map { RecordingData.Bean(it) }
+            private set
+
+        var hasRecordings = recordings?.isNotEmpty() ?: false
+            private set
+
+        fun hideRecordings() {
+            hasRecordings = recordings?.isNotEmpty() ?: false
+            recordings = null
+        }
 
         val metaData = entity.metaData
     }
