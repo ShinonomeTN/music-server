@@ -16,6 +16,7 @@ import io.ktor.http.content.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
+import org.apache.commons.io.IOUtils
 import org.springframework.stereotype.Controller
 import java.awt.Color
 import java.io.ByteArrayOutputStream
@@ -94,46 +95,54 @@ class CoverArtApi(private val coverArtService: CoverArtService) {
     @KtorRoute("/{path...}")
     fun Route.getCoverArt() = accessControl(AC.Guest) {
         get {
-            val path = call.parameters.getAll("path")?.takeIf { it.isNotEmpty() } ?: return@get call.respond(HttpStatusCode.BadRequest)
-            val realPath = path.filter { it.isNotBlank() && !pathSegmentBlackList.contains(it) }.takeIf { it.isNotEmpty() }?.joinToString("/") { it }
+            val pathSuffix = call
+                .parameters
+                .getAll("path")
+                ?.filter { it.isNotBlank() && !pathSegmentBlackList.contains(it) }
+                ?.takeIf { it.isNotEmpty() }
+                ?.joinToString("/") { it }
                 ?: return@get call.respond(HttpStatusCode.BadRequest)
+
             val parameters = CoverArtRequestParams(call.request.queryParameters)
 
             if (parameters.isEmpty()) {
-                val file = coverArtService.get(realPath) ?: return@get call.respond(HttpStatusCode.NotFound)
-                call.respondFile(file)
-            } else {
-                val contentType = when (parameters.type ?: "jpg") {
-                    "jpg" -> ContentType.Image.JPEG
-                    "png" -> ContentType.Image.PNG
-                    else -> validationError("invalid_picture_type")
+                val file = coverArtService.get(pathSuffix) ?: return@get call.respond(HttpStatusCode.NotFound)
+                call.respondOutputStream(contentType = ContentType.Image.Any) {
+                    IOUtils.copy(file, this)
                 }
+                return@get
+            }
 
-                val art = background {
-                    coverArtService.get(realPath) {
-                        val width = parameters.width ?: width
-                        val height = parameters.height ?: height
+            val contentType = when (parameters.type ?: "jpg") {
+                "jpg" -> ContentType.Image.JPEG
+                "png" -> ContentType.Image.PNG
+                else -> validationError("invalid_picture_type")
+            }
 
-                        parameters.backgroundColor?.let { backgroundColor = Color.decode(it) }
+            val art = background {
+                coverArtService.get(pathSuffix) {
+                    val width = parameters.width ?: width
+                    val height = parameters.height ?: height
 
-                        parameters.cropMode?.let {
-                            when (it) {
-                                "fill" -> crop(width, height)
-                                "cover" -> {
-                                    scaleKeepRatio(width, height)
-                                    alignCenter()
-                                }
-                                "fit_width" -> scaleFitToWidth(width)
-                                "fit_height" -> scaleFitToHeight(height)
+                    parameters.backgroundColor?.let { backgroundColor = Color.decode(it) }
+
+                    parameters.cropMode?.let {
+                        when (it) {
+                            "fill" -> crop(width, height)
+                            "cover" -> {
+                                scaleKeepRatio(width, height)
+                                alignCenter()
                             }
+                            "fit_width" -> scaleFitToWidth(width)
+                            "fit_height" -> scaleFitToHeight(height)
                         }
                     }
-                } ?: return@get call.respond(HttpStatusCode.NotFound)
+                }
+            } ?: return@get call.respond(HttpStatusCode.NotFound)
 
-                val output = ByteArrayOutputStream()
-                background { ImageIO.write(art, parameters.type ?: "jpg", output) }
-                call.respondBytes(contentType) { output.toByteArray() }
-            }
+            val output = ByteArrayOutputStream()
+            background { ImageIO.write(art, parameters.type ?: "jpg", output) }
+            call.respondBytes(contentType) { output.toByteArray() }
         }
     }
 }

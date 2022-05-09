@@ -30,8 +30,7 @@ import java.util.concurrent.TimeUnit
 @KtorRoute("/api/auth")
 class AuthApi(
     private val userService: UserService,
-    private val config: SecurityServiceConfiguration,
-    private val metaConfig: MetaConfiguration
+    private val config: SecurityServiceConfiguration
 ) {
 
     class LoginRequest(parameter: Parameters) {

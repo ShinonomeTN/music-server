@@ -1,6 +1,5 @@
-package com.shinonometn.music.server.configuration
+package com.shinonometn.music.server.platform
 
-import com.shinonometn.music.server.commons.PlatformInitAction
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.context.ApplicationListener

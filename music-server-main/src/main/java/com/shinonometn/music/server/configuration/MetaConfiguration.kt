@@ -9,6 +9,9 @@ open class MetaConfiguration(private val deployConfig : DeploymentConfiguration)
     @Value("\${application.hostname:}")
     var hostname : String = ""
 
+    @Value("\${application.protocol:http}")
+    var protocol : String = "http"
+
     private val commonPorts = listOf(80, 443)
     fun resolveHostName() : String {
         return when {

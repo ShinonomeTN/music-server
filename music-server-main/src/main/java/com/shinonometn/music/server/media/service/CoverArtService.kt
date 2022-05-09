@@ -3,23 +3,21 @@ package com.shinonometn.music.server.media.service
 import com.shinonometn.koemans.exposed.Page
 import com.shinonometn.koemans.exposed.PageRequest
 import com.shinonometn.koemans.exposed.database.SqlDatabase
-import com.shinonometn.music.server.file.FileService
 import com.shinonometn.music.server.media.data.CoverArtData
 import com.shinonometn.music.server.media.event.CoverArtDeleteEvent
+import com.shinonometn.music.server.platform.file.PlatformFileService
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import java.awt.Color
 import java.awt.RenderingHints
 import java.awt.image.BufferedImage
-import java.io.File
-import java.io.FileInputStream
 import java.io.InputStream
 import javax.imageio.ImageIO
 import kotlin.math.roundToInt
 
 @Service
 class CoverArtService(
-    private val fileService: FileService,
+    private val fileService: PlatformFileService,
     private val database: SqlDatabase,
     private val eventPublisher: ApplicationEventPublisher
 ) {
@@ -33,10 +31,8 @@ class CoverArtService(
         }
     }
 
-    fun get(path: String): File? {
-        val file = fileService.getFile(path)
-        if (!file.exists()) return null
-        return file
+    fun get(path: String): InputStream? {
+        return fileService.get(path).inputStream()
     }
 
     class CoverArtInfo(val image: BufferedImage, val mimeType: String)
@@ -135,8 +131,8 @@ class CoverArtService(
     }
 
     fun get(path: String, imageOperation: ImageOperation.() -> Unit): BufferedImage? {
-        val file = get(path) ?: return null
-        val image = ImageIO.read(FileInputStream(file)) ?: return null
+        val inputStream = get(path) ?: return null
+        val image = ImageIO.read(inputStream) ?: return null
 
         val op = ImageOperation(image, imageOperation)
         return op.toImage()

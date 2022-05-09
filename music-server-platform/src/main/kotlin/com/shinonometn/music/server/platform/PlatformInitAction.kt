@@ -1,4 +1,4 @@
-package com.shinonometn.music.server.commons
+package com.shinonometn.music.server.platform
 
 import org.springframework.context.ApplicationEvent
 
