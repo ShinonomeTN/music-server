@@ -1,4 +1,4 @@
-package com.shinonometn.music.server.security.data
+package com.shinonometn.music.server.platform.security.data
 
 import com.shinonometn.koemans.exposed.countBy
 import org.jetbrains.exposed.dao.LongEntity

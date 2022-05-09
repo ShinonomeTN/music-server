@@ -62,6 +62,9 @@ subprojects {
         compile "commons-codec:commons-codec:1.15"
         compile "commons-io:commons-io:2.11.0"
 
+        implementation "com.shinonometn:ktor-server-access-control:1.1-SNAPSHOT"
+        implementation group: 'org.mindrot', name: 'jbcrypt', version:'0.4'
+
         testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
         testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
     }

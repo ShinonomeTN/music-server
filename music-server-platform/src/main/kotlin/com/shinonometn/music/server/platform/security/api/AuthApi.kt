@@ -1,4 +1,4 @@
-package com.shinonometn.music.server.security.api
+package com.shinonometn.music.server.platform.security.api
 
 import com.shinonometn.koemans.coroutine.background
 import com.shinonometn.koemans.web.ParamValidationException
@@ -6,10 +6,9 @@ import com.shinonometn.koemans.web.Validator
 import com.shinonometn.koemans.web.spring.route.KtorRoute
 import com.shinonometn.ktor.server.access.control.accessControl
 import com.shinonometn.music.server.commons.*
-import com.shinonometn.music.server.configuration.MetaConfiguration
-import com.shinonometn.music.server.security.commons.*
-import com.shinonometn.music.server.security.configuration.SecurityServiceConfiguration
-import com.shinonometn.music.server.security.service.UserService
+import com.shinonometn.music.server.platform.security.commons.*
+import com.shinonometn.music.server.platform.security.configuration.SecurityServiceConfiguration
+import com.shinonometn.music.server.platform.security.service.UserService
 import io.ktor.application.*
 import io.ktor.features.*
 import io.ktor.freemarker.*
@@ -20,9 +19,7 @@ import io.ktor.routing.*
 import io.ktor.util.*
 import org.apache.commons.codec.binary.Base64
 import org.springframework.stereotype.Controller
-import sun.net.www.protocol.http.HttpURLConnection.userAgent
 import java.time.LocalDateTime
-import java.time.ZoneId
 import java.time.ZoneOffset
 import java.util.concurrent.TimeUnit
 

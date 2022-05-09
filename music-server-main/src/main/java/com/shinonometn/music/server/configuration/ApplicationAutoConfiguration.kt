@@ -8,7 +8,6 @@ import com.shinonometn.koemans.web.spring.configuration.KtorConfiguration
 import com.shinonometn.music.server.commons.BusinessException
 import io.ktor.application.*
 import io.ktor.features.*
-import io.ktor.freemarker.*
 import io.ktor.jackson.*
 import io.ktor.response.*
 import org.springframework.context.annotation.ComponentScan

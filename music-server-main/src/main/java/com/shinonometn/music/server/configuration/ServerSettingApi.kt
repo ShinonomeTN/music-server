@@ -2,10 +2,9 @@ package com.shinonometn.music.server.configuration
 
 import com.shinonometn.koemans.web.spring.route.KtorRoute
 import com.shinonometn.music.server.commons.Jackson
-import com.shinonometn.music.server.security.commons.AC
+import com.shinonometn.music.server.platform.security.commons.AC
 import io.ktor.application.*
 import io.ktor.http.*
-import io.ktor.http.content.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import org.apache.commons.io.IOUtils

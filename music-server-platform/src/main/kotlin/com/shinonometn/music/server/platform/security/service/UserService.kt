@@ -1,14 +1,14 @@
-package com.shinonometn.music.server.security.service
+package com.shinonometn.music.server.platform.security.service
 
 import com.shinonometn.koemans.exposed.PageRequest
 import com.shinonometn.koemans.exposed.database.SqlDatabase
 import com.shinonometn.music.server.commons.Jackson
-import com.shinonometn.music.server.commons.PlatformInitAction
 import com.shinonometn.music.server.commons.businessError
-import com.shinonometn.music.server.security.commons.UserSession
-import com.shinonometn.music.server.security.data.AppTokenData
-import com.shinonometn.music.server.security.data.SessionData
-import com.shinonometn.music.server.security.data.UserData
+import com.shinonometn.music.server.platform.PlatformInitAction
+import com.shinonometn.music.server.platform.security.commons.UserSession
+import com.shinonometn.music.server.platform.security.data.AppTokenData
+import com.shinonometn.music.server.platform.security.data.SessionData
+import com.shinonometn.music.server.platform.security.data.UserData
 import kotlinx.coroutines.*
 import org.mindrot.jbcrypt.BCrypt
 import org.slf4j.LoggerFactory
@@ -26,16 +26,16 @@ class UserService(private val database: SqlDatabase) {
     private val userServiceJobContext = CoroutineScope(Dispatchers.IO)
     private val userServiceJob = userServiceJobContext.launch(start = CoroutineStart.LAZY) {
         logger.info("User service job started.")
-        while(isActive) {
+        while (isActive) {
             try {
                 var clearCount = 0
                 database {
                     clearCount += AppTokenData.clearExpired()
                     clearCount += SessionData.clearExpired()
                 }
-                if(clearCount > 0) logger.info("Clear $clearCount expired tokens and sessions.")
+                if (clearCount > 0) logger.info("Clear $clearCount expired tokens and sessions.")
                 delay(5000)
-            } catch (e : Exception) {
+            } catch (e: Exception) {
                 logger.info("UserService job meet exception.", e)
             }
         }
@@ -43,7 +43,7 @@ class UserService(private val database: SqlDatabase) {
 
     @EventListener(PlatformInitAction.InitFinished::class)
     fun userServiceJobKickStart() {
-        if(userServiceJob.isActive) return
+        if (userServiceJob.isActive) return
         userServiceJob.start()
     }
 

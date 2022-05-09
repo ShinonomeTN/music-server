@@ -1,4 +1,4 @@
-package com.shinonometn.music.server.security.data
+package com.shinonometn.music.server.platform.security.data
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.shinonometn.koemans.exposed.Page

@@ -10,7 +10,4 @@ mainClassName = "com.shinonometn.music.server.MainKt"
 dependencies {
     implementation project(':music-server-commons')
     implementation project(':music-server-platform')
-
-    implementation "com.shinonometn:ktor-server-access-control:1.1-SNAPSHOT"
-    implementation group: 'org.mindrot', name: 'jbcrypt', version:'0.4'
 }

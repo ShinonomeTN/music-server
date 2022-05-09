@@ -1,4 +1,4 @@
-package com.shinonometn.music.server.security.api
+package com.shinonometn.music.server.platform.security.api
 
 import com.shinonometn.koemans.coroutine.background
 import com.shinonometn.koemans.receivePageRequest
@@ -7,9 +7,9 @@ import com.shinonometn.koemans.web.Validator
 import com.shinonometn.koemans.web.spring.route.KtorRoute
 import com.shinonometn.music.server.commons.businessError
 import com.shinonometn.music.server.commons.validationError
-import com.shinonometn.music.server.security.commons.AC
-import com.shinonometn.music.server.security.commons.accessControl
-import com.shinonometn.music.server.security.service.UserService
+import com.shinonometn.music.server.platform.security.commons.AC
+import com.shinonometn.music.server.platform.security.commons.accessControl
+import com.shinonometn.music.server.platform.security.service.UserService
 import io.ktor.application.*
 import io.ktor.http.*
 import io.ktor.request.*

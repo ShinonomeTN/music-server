@@ -1,16 +1,13 @@
 package com.shinonometn.music.server.configuration
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.shinonometn.koemans.web.spring.configuration.KtorConfiguration
 import com.shinonometn.music.server.commons.Jackson
 import freemarker.cache.ClassTemplateLoader
 import freemarker.cache.FileTemplateLoader
 import freemarker.cache.MruCacheStorage
 import freemarker.cache.NullCacheStorage
-import freemarker.ext.beans.BeanModel
 import freemarker.template.Configuration.SQUARE_BRACKET_INTERPOLATION_SYNTAX
 import freemarker.template.Configuration.SQUARE_BRACKET_TAG_SYNTAX
-import freemarker.template.TemplateMethodModelEx
 import io.ktor.application.*
 import io.ktor.freemarker.*
 import org.springframework.beans.factory.annotation.Value

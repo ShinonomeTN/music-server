@@ -8,13 +8,12 @@ import com.shinonometn.koemans.utils.isBoolean
 import com.shinonometn.koemans.utils.isNumber
 import com.shinonometn.koemans.web.Validator
 import com.shinonometn.koemans.web.spring.route.KtorRoute
-import com.shinonometn.ktor.server.access.control.accessControl
 import com.shinonometn.music.server.commons.CR
 import com.shinonometn.music.server.commons.validationError
 import com.shinonometn.music.server.media.data.PlaylistItemData
 import com.shinonometn.music.server.media.service.PlaylistService
-import com.shinonometn.music.server.security.commons.*
-import com.shinonometn.music.server.security.service.UserService
+import com.shinonometn.music.server.platform.security.commons.*
+import com.shinonometn.music.server.platform.security.service.UserService
 import io.ktor.application.*
 import io.ktor.http.*
 import io.ktor.request.*
@@ -78,11 +77,11 @@ class PlaylistApi(private val playlistService: PlaylistService, private val user
         val id = call.parameters["id"]!!.toLong()
         val result = background { playlistService.findById(id) } ?: validationError("invalid_id")
 
-        if(result.isPrivate) {
+        if (result.isPrivate) {
             val userIdentity = call.acUserIdentity ?: CR.Error.forbidden()
-            if(result.creatorId != userIdentity.userId) CR.Error.forbidden("playlist_is_private")
+            if (result.creatorId != userIdentity.userId) CR.Error.forbidden("playlist_is_private")
             val appToken = call.appToken
-            if(appToken != null && !appToken.scope.contains(AC.Scope.PlayListRead.scopeName)) CR.Error.forbidden()
+            if (appToken != null && !appToken.scope.contains(AC.Scope.PlayListRead.scopeName)) CR.Error.forbidden()
         }
 
         val creator = userService.findProfileBeanOf(result.creatorId)
@@ -95,7 +94,7 @@ class PlaylistApi(private val playlistService: PlaylistService, private val user
             val id = call.parameters["id"]?.toLongOrNull() ?: validationError("invalid_id")
             val form = PlaylistForm(call.receiveParameters())
             val session = call.acUserIdentityNotNull
-            if(!playlistService.isUserOwnPlaylist(id, session.userId)) CR.Error.forbidden()
+            if (!playlistService.isUserOwnPlaylist(id, session.userId)) CR.Error.forbidden()
             val result = background {
                 playlistService.update(id, session.userId, form.name, form.description, form.coverArtId, form.isPrivate)
             }

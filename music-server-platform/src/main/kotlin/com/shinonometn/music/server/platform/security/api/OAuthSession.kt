@@ -1,4 +1,4 @@
-package com.shinonometn.music.server.security.api
+package com.shinonometn.music.server.platform.security.api
 
 import com.shinonometn.koemans.utils.isNumber
 import org.apache.commons.codec.binary.Base64
@@ -16,7 +16,7 @@ class OAuthSession(val userId: Long, val redirect : String, val expireAt: Long, 
                 ":${URLEncoder.encode(redirect, "UTF-8")}"
         val sign = Base64.encodeBase64URLSafeString(DigestUtils.sha256(content + secret))
         val encodedContent = Base64.encodeBase64String(content.toByteArray())
-        return "${encodedContent}${Separator}${sign}"
+        return "${encodedContent}$Separator${sign}"
     }
 
     companion object {

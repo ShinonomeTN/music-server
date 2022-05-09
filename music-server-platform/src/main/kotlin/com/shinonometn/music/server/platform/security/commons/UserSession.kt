@@ -1,4 +1,4 @@
-package com.shinonometn.music.server.security.commons
+package com.shinonometn.music.server.platform.security.commons
 
 import org.apache.commons.codec.binary.Base64
 import org.apache.commons.codec.digest.DigestUtils

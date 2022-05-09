@@ -1,4 +1,4 @@
-package com.shinonometn.music.server.security.commons
+package com.shinonometn.music.server.platform.security.commons
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ObjectNode
@@ -7,7 +7,7 @@ import com.shinonometn.ktor.server.access.control.accessControl
 import com.shinonometn.ktor.server.access.control.meta
 import com.shinonometn.music.server.commons.CR
 import com.shinonometn.music.server.commons.Jackson
-import com.shinonometn.music.server.security.data.UserData
+import com.shinonometn.music.server.platform.security.data.UserData
 import io.ktor.application.*
 import io.ktor.routing.*
 import io.ktor.util.pipeline.*
@@ -105,19 +105,19 @@ private fun UserData.Bean.resourceObject(): JsonNode? {
 
 private fun UserData.Bean.permissionList(): List<String> {
     val permission = resourceObject() ?: return emptyList()
-    val list = permission[AC.Constants.PERMISSION]?.takeIf { it.isArray } ?: return emptyList()
+    val list = permission[com.shinonometn.music.server.platform.security.commons.AC.Constants.PERMISSION]?.takeIf { it.isArray } ?: return emptyList()
     return list.map { it.asText() }
 }
 
 private fun UserData.Bean.roleList(): List<String> {
     val role = resourceObject() ?: return emptyList()
-    val list = role[AC.Constants.ROLE]?.takeIf { it.isArray } ?: return emptyList()
+    val list = role[com.shinonometn.music.server.platform.security.commons.AC.Constants.ROLE]?.takeIf { it.isArray } ?: return emptyList()
     return list.map { it.asText() }
 }
 
 fun AccessControlCheckerContext.isSuperAdmin(): Boolean {
     val user = meta<UserData.Bean>() ?: return false
-    return user.roleList().contains(AC.Constants.SUPER_ADMIN)
+    return user.roleList().contains(com.shinonometn.music.server.platform.security.commons.AC.Constants.SUPER_ADMIN)
 }
 
 fun AccessControlCheckerContext.hasPermission(vararg permission: String): Boolean {

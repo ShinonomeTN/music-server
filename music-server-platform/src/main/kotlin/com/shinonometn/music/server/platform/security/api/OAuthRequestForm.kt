@@ -1,6 +1,6 @@
-package com.shinonometn.music.server.security.api
+package com.shinonometn.music.server.platform.security.api
 
-import com.shinonometn.music.server.security.commons.AC
+import com.shinonometn.music.server.platform.security.commons.AC
 import io.ktor.application.*
 import io.ktor.request.*
 

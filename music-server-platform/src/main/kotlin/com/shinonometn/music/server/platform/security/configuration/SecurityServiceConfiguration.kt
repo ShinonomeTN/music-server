@@ -1,11 +1,11 @@
-package com.shinonometn.music.server.security.configuration
+package com.shinonometn.music.server.platform.security.configuration
 
 import com.shinonometn.koemans.spring.find
 import com.shinonometn.koemans.web.spring.configuration.KtorConfiguration
 import com.shinonometn.koemans.web.spring.springContext
 import com.shinonometn.ktor.server.access.control.AccessControl
-import com.shinonometn.music.server.security.commons.*
-import com.shinonometn.music.server.security.service.UserService
+import com.shinonometn.music.server.platform.security.commons.UserIdentity
+import com.shinonometn.music.server.platform.security.service.UserService
 import io.ktor.application.*
 import io.ktor.http.*
 import io.ktor.response.*
@@ -20,7 +20,7 @@ open class SecurityServiceConfiguration {
     var appTokenTimeoutSeconds: Long = TimeUnit.DAYS.toSeconds(1)
         private set
 
-    val appTokenTimeoutTimestamp : Long
+    val appTokenTimeoutTimestamp: Long
         get() = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(appTokenTimeoutSeconds)
 
     @Value("\${application.security.appTokenSalt:}")
@@ -29,20 +29,20 @@ open class SecurityServiceConfiguration {
 
 
     @Value("\${application.security.sessionSalt:}")
-    var sessionSalt : String = "buyaoyongroot"
+    var sessionSalt: String = "buyaoyongroot"
         private set
 
     @Value("\${application.security.sessionTimeoutDays:}")
-    var sessionTimeoutDays : Long = 7
+    var sessionTimeoutDays: Long = 7
         private set
 
-    val sessionTimeoutMillis : Long
+    val sessionTimeoutMillis: Long
         get() = TimeUnit.DAYS.toMillis(sessionTimeoutDays)
 
-    val sessionTimeoutSeconds : Long
+    val sessionTimeoutSeconds: Long
         get() = TimeUnit.DAYS.toSeconds(sessionTimeoutDays)
 
-    val sessionTimeoutTimestamp : Long
+    val sessionTimeoutTimestamp: Long
         get() = System.currentTimeMillis() + sessionTimeoutMillis
 
     @KtorConfiguration
@@ -50,26 +50,26 @@ open class SecurityServiceConfiguration {
         val config = springContext.find<SecurityServiceConfiguration>()
         val userService = springContext.find<UserService>()
         provider("Guest") {
-            it.put(GuestToken)
+            it.put(com.shinonometn.music.server.platform.security.commons.GuestToken)
         }
 
         provider("UserSession") {
             val cookie = call.request.cookies["session"] ?: return@provider
             val session = try {
-                UserSession.from(cookie, config.sessionSalt)
-            } catch (e : Exception) {
+                com.shinonometn.music.server.platform.security.commons.UserSession.from(cookie, config.sessionSalt)
+            } catch (e: Exception) {
                 // Ignore
                 return@provider
             }
-            if(!userService.isSessionValid(session.sessionId)) return@provider
+            if (!userService.isSessionValid(session.sessionId)) return@provider
             it.put(session)
         }
 
         provider("AppToken") {
             val token = call.request.headers["X-APP-TOKEN"] ?: return@provider
             val appToken = try {
-                AppToken.from(token, config.appTokenSalt)
-            } catch (e : Exception) {
+                com.shinonometn.music.server.platform.security.commons.AppToken.from(token, config.appTokenSalt)
+            } catch (e: Exception) {
                 // Ignore
                 return@provider
             }
