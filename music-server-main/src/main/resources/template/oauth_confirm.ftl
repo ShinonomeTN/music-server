@@ -45,7 +45,9 @@
 </script>
 <script>
   window.$MusicServer = [=modalJson]
-
+</script>
+<script src="auth/config/scope_descriptions.js"></script>
+<script>
   window.$app = Vue.createApp({
     components: {
       PermissionListView: {
@@ -93,7 +95,7 @@
         return $MusicServer.session
       },
       scopeDescriptionJson() {
-        return $MusicServer.scopeDescriptionJson
+        return $MusicServer.scopeDescriptions
       },
       scopeList() {
         const scope = $MusicServer.session.scope

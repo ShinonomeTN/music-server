@@ -6,6 +6,7 @@ import com.shinonometn.koemans.web.Validator
 import com.shinonometn.koemans.web.spring.route.KtorRoute
 import com.shinonometn.music.server.commons.businessError
 import com.shinonometn.music.server.commons.vararg
+import com.shinonometn.music.server.media.MediaScope
 import com.shinonometn.music.server.media.service.MetaManagementService
 import com.shinonometn.music.server.platform.security.commons.AC
 import com.shinonometn.music.server.platform.security.commons.accessControl
@@ -49,7 +50,7 @@ class TrackManagementApi(private val service: MetaManagementService) {
     }
 
     @KtorRoute
-    fun Route.trackApis() = accessControl(AC.Scope.Admin.TrackManagement) {
+    fun Route.trackApis() = accessControl(MediaScope.Admin.TrackManagement) {
         post {
             val request = TrackInfoForm(call.receiveParameters())
             if (request.albumId != null && !service.isAlbumExists(request.albumId)) businessError("album_not_exists")

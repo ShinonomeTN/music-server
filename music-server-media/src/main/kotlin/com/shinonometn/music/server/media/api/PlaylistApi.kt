@@ -10,6 +10,7 @@ import com.shinonometn.koemans.web.Validator
 import com.shinonometn.koemans.web.spring.route.KtorRoute
 import com.shinonometn.music.server.commons.CR
 import com.shinonometn.music.server.commons.validationError
+import com.shinonometn.music.server.media.MediaScope
 import com.shinonometn.music.server.media.data.PlaylistItemData
 import com.shinonometn.music.server.media.service.PlaylistService
 import com.shinonometn.music.server.platform.security.commons.*
@@ -27,7 +28,7 @@ import org.springframework.stereotype.Controller
 class PlaylistApi(private val playlistService: PlaylistService, private val userService: UserService) {
 
     @KtorRoute
-    fun Route.listPlaylists() = accessControl(AC.Scope.PlayListRead) {
+    fun Route.listPlaylists() = accessControl(MediaScope.PlayListRead) {
         get {
             val identity = call.acUserIdentityNotNull
             val userId = identity.userId
@@ -61,7 +62,7 @@ class PlaylistApi(private val playlistService: PlaylistService, private val user
     }
 
     @KtorRoute
-    fun Route.createPlaylist() = accessControl(AC.Scope.PlayListCreate) {
+    fun Route.createPlaylist() = accessControl(MediaScope.PlayListCreate) {
         post {
             val form = PlaylistForm(call.receiveParameters())
             val session = call.acUserIdentityNotNull
@@ -81,7 +82,7 @@ class PlaylistApi(private val playlistService: PlaylistService, private val user
             val userIdentity = call.acUserIdentity ?: CR.Error.forbidden()
             if (result.creatorId != userIdentity.userId) CR.Error.forbidden("playlist_is_private")
             val appToken = call.appToken
-            if (appToken != null && !appToken.scope.contains(AC.Scope.PlayListRead.scopeName)) CR.Error.forbidden()
+            if (appToken != null && !appToken.scope.contains(MediaScope.PlayListRead.scope)) CR.Error.forbidden()
         }
 
         val creator = userService.findProfileBeanOf(result.creatorId)
@@ -89,7 +90,7 @@ class PlaylistApi(private val playlistService: PlaylistService, private val user
     }
 
     @KtorRoute("/{id}")
-    fun Route.updatePlaylist() = accessControl(AC.Scope.PlayListUpdate) {
+    fun Route.updatePlaylist() = accessControl(MediaScope.PlayListUpdate) {
         post {
             val id = call.parameters["id"]?.toLongOrNull() ?: validationError("invalid_id")
             val form = PlaylistForm(call.receiveParameters())
@@ -103,7 +104,7 @@ class PlaylistApi(private val playlistService: PlaylistService, private val user
     }
 
     @KtorRoute("/{id}")
-    fun Route.deletePlaylist() = accessControl(AC.Scope.PlayListDelete) {
+    fun Route.deletePlaylist() = accessControl(MediaScope.PlayListDelete) {
         delete {
             val id = call.parameters["id"]?.toLongOrNull() ?: validationError("invalid_id")
             val session = call.acUserIdentityNotNull
@@ -120,7 +121,7 @@ class PlaylistApi(private val playlistService: PlaylistService, private val user
     }
 
     @KtorRoute("/{id}/item")
-    fun Route.listPlaylistItem() = accessControl(AC.Scope.PlayListRead) {
+    fun Route.listPlaylistItem() = accessControl(MediaScope.PlayListRead) {
         get {
             val id = call.parameters["id"]?.toLongOrNull() ?: validationError("invalid_id")
             val paging = call.receivePageRequest()
@@ -143,7 +144,7 @@ class PlaylistApi(private val playlistService: PlaylistService, private val user
     }
 
     @KtorRoute("/{id}/item")
-    fun Route.addPlayListItem() = accessControl(AC.Scope.PlayListUpdate) {
+    fun Route.addPlayListItem() = accessControl(MediaScope.PlayListUpdate) {
         post {
             val id = call.parameters["id"]?.toLongOrNull() ?: validationError("invalid_id")
             val form = PlayListItemForm(call.receiveParameters())
@@ -165,7 +166,7 @@ class PlaylistApi(private val playlistService: PlaylistService, private val user
     }
 
     @KtorRoute("/{id}/item")
-    fun Route.deletePlayListItem() = accessControl(AC.Scope.PlayListDelete) {
+    fun Route.deletePlayListItem() = accessControl(MediaScope.PlayListDelete) {
         delete {
             val id = call.parameters["id"]?.toLongOrNull() ?: validationError("invalid_id")
             val form = PlayListItemDeleteForm(call.receiveParameters())
@@ -187,7 +188,7 @@ class PlaylistApi(private val playlistService: PlaylistService, private val user
     }
 
     @KtorRoute("/{id}/item/{itemId}")
-    fun Route.movePlaylistItemAbove() = accessControl(AC.Scope.PlayListUpdate) {
+    fun Route.movePlaylistItemAbove() = accessControl(MediaScope.PlayListUpdate) {
         param("action", "move_above") {
             post {
                 val params = PlayListItemMoveParams(call.parameters)
@@ -203,7 +204,7 @@ class PlaylistApi(private val playlistService: PlaylistService, private val user
     }
 
     @KtorRoute("/{id}/item/{itemId}")
-    fun Route.movePlaylistItemBelow() = accessControl(AC.Scope.PlayListUpdate) {
+    fun Route.movePlaylistItemBelow() = accessControl(MediaScope.PlayListUpdate) {
         param("action", "move_below") {
             post {
                 val params = PlayListItemMoveParams(call.parameters)

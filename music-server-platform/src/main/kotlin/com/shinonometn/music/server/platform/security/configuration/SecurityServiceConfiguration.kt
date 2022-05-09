@@ -4,12 +4,14 @@ import com.shinonometn.koemans.spring.find
 import com.shinonometn.koemans.web.spring.configuration.KtorConfiguration
 import com.shinonometn.koemans.web.spring.springContext
 import com.shinonometn.ktor.server.access.control.AccessControl
+import com.shinonometn.music.server.platform.security.PlatformScope
 import com.shinonometn.music.server.platform.security.commons.UserIdentity
 import com.shinonometn.music.server.platform.security.service.UserService
 import io.ktor.application.*
 import io.ktor.http.*
 import io.ktor.response.*
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import java.util.concurrent.TimeUnit
 
@@ -27,7 +29,6 @@ open class SecurityServiceConfiguration {
     var appTokenSalt: String = "01189998819991197253"
         private set
 
-
     @Value("\${application.security.sessionSalt:}")
     var sessionSalt: String = "buyaoyongroot"
         private set
@@ -44,6 +45,9 @@ open class SecurityServiceConfiguration {
 
     val sessionTimeoutTimestamp: Long
         get() = System.currentTimeMillis() + sessionTimeoutMillis
+
+    @Bean
+    open fun platformScopes() = PlatformScope.values()
 
     @KtorConfiguration
     fun Application.accessControl() = install(AccessControl) {

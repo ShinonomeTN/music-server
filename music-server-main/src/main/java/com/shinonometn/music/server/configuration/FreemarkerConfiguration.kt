@@ -24,7 +24,6 @@ open class FreemarkerConfiguration(
 
     @KtorConfiguration
     fun Application.freemarker() = install(FreeMarker) {
-        val objectMapper = Jackson.mapper
         val templateDir = templateDir.takeIf { it.isNotBlank() }?.let { File(it) }?.takeIf { it.exists() && it.isDirectory }
         templateLoader = if (templateDir != null) FileTemplateLoader(templateDir) else ClassTemplateLoader(this::class.java.classLoader, "template")
         cacheStorage = if (templateCacheEnabled) MruCacheStorage(templateStrongCacheSize, templateSoftCacheSize) else NullCacheStorage()

@@ -7,6 +7,7 @@ import com.shinonometn.koemans.web.spring.route.KtorRoute
 import com.shinonometn.music.server.commons.CR
 import com.shinonometn.music.server.commons.businessError
 import com.shinonometn.music.server.commons.vararg
+import com.shinonometn.music.server.media.MediaScope
 import com.shinonometn.music.server.media.service.MetaManagementService
 import com.shinonometn.music.server.platform.security.commons.AC
 import com.shinonometn.music.server.platform.security.commons.accessControl
@@ -43,7 +44,7 @@ class ArtistManagementApi(private val service: MetaManagementService) {
     }
 
     @KtorRoute
-    fun Route.artistApis() = accessControl(AC.Scope.Admin.ArtistManagement) {
+    fun Route.artistApis() = accessControl(MediaScope.Admin.ArtistManagement) {
         post {
             val request = CreateArtistRequest(call.receiveParameters())
             val artist = background { service.createArtist(request.name, request.coverArtIds) }

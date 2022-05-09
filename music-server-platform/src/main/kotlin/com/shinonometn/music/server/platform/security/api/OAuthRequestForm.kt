@@ -1,6 +1,5 @@
 package com.shinonometn.music.server.platform.security.api
 
-import com.shinonometn.music.server.platform.security.commons.AC
 import io.ktor.application.*
 import io.ktor.request.*
 
@@ -8,7 +7,7 @@ class OAuthRequestForm(val userAgent: String, val scope: Set<String>, val redire
 
     companion object {
         fun from(call: ApplicationCall): OAuthRequestForm {
-            val userAgent = call.parameters["user_agent"] ?: call.request.userAgent() ?: throw OAuthParameterError(
+            val userAgent = call.parameters["user_agent"] ?: call.request.userAgent() ?: throw OAuthError(
                 "Illegal User-Agent: user_agent is missing.",
                 mapOf(
                     "to" to "developer",
@@ -21,16 +20,16 @@ class OAuthRequestForm(val userAgent: String, val scope: Set<String>, val redire
             } ?: emptyList()
 
             // If the scope list is invalid, return an error
-            val scopeList = scopes.filter { AC.Scope.allNames.contains(it) }.takeIf { it.isNotEmpty() }?.toSet()
-                ?: throw OAuthParameterError(
-                    "Invalid Scope List : ${scopes.joinToString(",") { it }}",
+            val scopeList = scopes.takeIf { it.isNotEmpty() }?.toSet()
+                ?: throw OAuthError(
+                    "Scope list is required.",
                     mapOf(
                         "to" to "developer",
                         "recover" to listOf("reject")
                     )
                 )
 
-            val redirect = call.parameters["redirect"] ?: throw OAuthParameterError(
+            val redirect = call.parameters["redirect"] ?: throw OAuthError(
                 "Invalid Redirect Address. An url or 'internal' should provided.",
                 mapOf(
                     "to" to "developer",

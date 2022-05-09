@@ -7,6 +7,7 @@ import com.shinonometn.koemans.web.spring.route.KtorRoute
 import com.shinonometn.koemans.web.vararg
 import com.shinonometn.music.server.commons.CR
 import com.shinonometn.music.server.commons.businessError
+import com.shinonometn.music.server.media.MediaScope
 import com.shinonometn.music.server.media.service.MetaManagementService
 import com.shinonometn.music.server.platform.security.commons.AC
 import com.shinonometn.music.server.platform.security.commons.accessControl
@@ -47,7 +48,7 @@ class AlbumManagementApi(private val service: MetaManagementService) {
     }
 
     @KtorRoute
-    fun Route.albumApis() = accessControl(AC.Scope.Admin.AlbumManagement) {
+    fun Route.albumApis() = accessControl(MediaScope.Admin.AlbumManagement) {
         post {
             val request = AlbumCreateRequest(call.receiveParameters())
             val result = background { service.createAlbum(request.title, request.albumArtIds, request.albumArtistIds) }

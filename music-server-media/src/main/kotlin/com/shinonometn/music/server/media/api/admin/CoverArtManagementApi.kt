@@ -5,6 +5,7 @@ import com.shinonometn.koemans.receivePageRequest
 import com.shinonometn.koemans.web.spring.route.KtorRoute
 import com.shinonometn.music.server.commons.CR
 import com.shinonometn.music.server.commons.validationError
+import com.shinonometn.music.server.media.MediaScope
 import com.shinonometn.music.server.media.data.CoverArtData
 import com.shinonometn.music.server.media.service.CoverArtService
 import com.shinonometn.music.server.platform.security.commons.AC
@@ -22,7 +23,7 @@ class CoverArtManagementApi(private val coverArtService: CoverArtService) {
     private val pictureExtensionNames = Regex(""".+?\.(jpg|JPG|jpeg|JPEG|png|PNG)$""")
 
     @KtorRoute
-    fun Route.coverArtManagementApi() = accessControl(AC.Scope.Admin.CoverManagement) {
+    fun Route.coverArtManagementApi() = accessControl(MediaScope.Admin.CoverManagement) {
         get {
             val paging = call.receivePageRequest()
             val result = coverArtService.findAll(paging).convert {

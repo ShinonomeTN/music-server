@@ -5,6 +5,7 @@ import com.shinonometn.koemans.web.Validator
 import com.shinonometn.koemans.web.spring.route.KtorRoute
 import com.shinonometn.music.server.commons.CR
 import com.shinonometn.music.server.commons.businessError
+import com.shinonometn.music.server.media.MediaScope
 import com.shinonometn.music.server.media.service.MetaManagementService
 import com.shinonometn.music.server.platform.security.commons.AC
 import com.shinonometn.music.server.platform.security.commons.accessControl
@@ -39,8 +40,8 @@ class RecordingManagementApi(private val service: MetaManagementService) {
     }
 
     @KtorRoute
-    fun Route.trackRecordingApis() = route("/track/{id}/recording") {
-        accessControl(AC.Scope.Admin.TrackManagement) {
+    fun Route.trackRecordingApis() = accessControl(MediaScope.Admin.TrackManagement) {
+        route("/track/{id}/recording") {
             post {
                 val id = call.parameters["id"]?.toLongOrNull() ?: businessError("id_should_be_number")
                 val request = CreateRecordingRequest(call.receiveParameters())
@@ -51,7 +52,7 @@ class RecordingManagementApi(private val service: MetaManagementService) {
     }
 
     @KtorRoute
-    fun Route.recordingApis() = accessControl(AC.Scope.Admin.RecordingManagement) {
+    fun Route.recordingApis() = accessControl(MediaScope.Admin.RecordingManagement) {
         route("/recording/{id}") {
             post {
                 val id = call.parameters["id"]?.toLongOrNull() ?: businessError("id_should_be_number")

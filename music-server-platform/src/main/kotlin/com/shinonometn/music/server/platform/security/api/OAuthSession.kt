@@ -24,59 +24,23 @@ class OAuthSession(val userId: Long, val redirect : String, val expireAt: Long, 
         const val Separator = "."
 
         fun from(string: String?, secret: String): OAuthSession {
-            if (string == null) throw OAuthParameterError(
-                "Invalid Session Format",
-                mapOf(
-                    "to" to "maintainer",
-                    "recover" to listOf("reject")
-                )
-            )
+            if (string == null) OAuthError.forMaintainer("Invalid Session Format")
 
             val (content, sign) = string.split(Separator).takeIf { it.size == 2 }
-                ?: throw OAuthParameterError(
-                    "Invalid Session Format. Content or Sign Missing.", mapOf(
-                        "to" to "maintainer",
-                        "recover" to listOf("reject")
-                    )
-                )
+                ?: OAuthError.forMaintainer("Invalid Session Format. Content or Sign Missing.")
 
             val decodedContent = String(Base64.decodeBase64(content))
             val (userId, expireAt, userAgent, scope, redirect) = decodedContent.split(":").takeIf { it.size == 5 }
-                ?: throw OAuthParameterError(
-                    "Invalid Session Content Format.", mapOf(
-                        "to" to "maintainer",
-                        "recover" to listOf("reject")
-                    )
-                )
+                ?: OAuthError.forMaintainer("Invalid Session Content Format.")
 
             if (!(userId.isNumber() && expireAt.isNumber()))
-                throw OAuthParameterError(
-                    "Invalid Session Content Format. Invalid User or Expire Format.", mapOf(
-                        "to" to "maintainer",
-                        "recover" to listOf("reject")
-                    )
-                )
+                OAuthError.forMaintainer("Invalid Session Content Format. Invalid User or Expire Format.")
 
             if (expireAt.toLong() < System.currentTimeMillis())
-                throw OAuthParameterError(
-                    "Session Expired.", mapOf(
-                        "to" to "user",
-                        "recover" to listOf(
-                            "reject",
-                            "retry"
-                        ),
-                        "error" to "session_expired",
-                        "message" to "current_session_is_expired"
-                    )
-                )
+                OAuthError.forUser("Session Expired.", "session_expired","current_session_is_expired")
 
             val newSign = Base64.encodeBase64URLSafeString(DigestUtils.sha256("${userId}:${expireAt}:${userAgent}:${scope}:${redirect}" + secret))
-            if (newSign != sign) throw OAuthParameterError(
-                "Invalid Session Signature.", mapOf(
-                    "to" to "maintainer",
-                    "recover" to listOf("reject")
-                )
-            )
+            if (newSign != sign) OAuthError.forMaintainer("Invalid Session Signature.")
 
             return OAuthSession(
                 userId.toLong(),

@@ -6,18 +6,24 @@ import com.shinonometn.ktor.server.access.control.AccessControlCheckerContext
 import com.shinonometn.ktor.server.access.control.accessControl
 import com.shinonometn.ktor.server.access.control.meta
 import com.shinonometn.music.server.commons.CR
-import com.shinonometn.music.server.commons.Jackson
 import com.shinonometn.music.server.platform.security.data.UserData
 import io.ktor.application.*
 import io.ktor.routing.*
 import io.ktor.util.pipeline.*
 
-private typealias ACC = suspend AccessControlCheckerContext.() -> Unit
+typealias ACChecker = suspend AccessControlCheckerContext.() -> Unit
 
-interface ACPermission {
-    val scopeName: String
-    val permission: ACC
+interface ACScope {
+    val scope: String
+    val permission: ACChecker
+    val descriptions : ObjectNode
 }
+
+interface ACScopeAdvance : ACScope {
+    val grantCondition : ACChecker
+}
+
+fun <T : ACScope> Collection<T>.scopeDescriptions() = map { it.descriptions }
 
 object AC {
     object Constants {
@@ -26,75 +32,19 @@ object AC {
         const val ROLE = "role"
     }
 
-    enum class Scope(override val scopeName: String, private val allowAnonymous: Boolean, val descriptions: ObjectNode) : ACPermission {
-        UserInfo("user_info", false, Jackson {
-            "title" to "Get User Info"
-            "description" to "Get your user information. Including your identity, roles and permissions."
-        }),
-
-        PlayListCreate("create_playlist", false, Jackson {
-            "title" to "Create playlists"
-            "description" to "Create new playlists."
-        }),
-
-        PlayListRead("read_playlist", false, Jackson {
-            "title" to "Read playlists"
-            "description" to "Read your playlists, including private playlists."
-        }),
-
-        PlayListUpdate("update_playlist", false, Jackson {
-            "title" to "Update playlists"
-            "description" to "Update your playlist."
-        }),
-        PlayListDelete("delete_playlist", false, Jackson {
-            "title" to "Delete playlists"
-            "description" to "Delete your playlist."
-        });
-
-        companion object {
-            val scopeDescriptions = Jackson {
-                values().forEach {
-                    it.scopeName to it.descriptions
-                }
-            }
-
-            val allNames = (values().map { it.scopeName } + Admin.values().map { it.scopeName }).toSet()
-        }
-
-        enum class Admin(override val scopeName: String) : ACPermission {
-            CoverManagement("admin_cover_management"),
-            UserManagement("admin_user_management"),
-            TrackManagement("admin_track_management"),
-            RecordingManagement("admin_recording_management"),
-            AlbumManagement("admin_album_management"),
-            ArtistManagement("admin_artist_management");
-
-            override val permission: ACC = AC@{
-                if (hasPermission(this@Admin.scopeName) || isSuperAdmin()) accept() else reject("message", "insufficient_permission")
-            }
-        }
-
-        override val permission: ACC = AC@{
-            if (allowAnonymous) return@AC accept()
-
-            if (!hasIdentity()) return@AC reject()
-            if (hasPermission(this@Scope.scopeName) || hasSession() || isSuperAdmin()) accept() else reject("message", "insufficient_permission")
-        }
-    }
-
-    val HasToken: ACC = {
+    val HasToken: ACChecker = {
         if (meta<AppToken>() != null) accept() else reject()
     }
 
-    val Guest: ACC = {
+    val Guest: ACChecker = {
         if (meta<GuestToken>() != null || hasIdentity()) accept() else reject()
     }
 
-    val HasSession: ACC = {
+    val HasSession: ACChecker = {
         if (meta<UserSession>() != null) accept() else reject()
     }
 
-    val HasIdentity: ACC = {
+    val HasIdentity: ACChecker = {
         if (meta<UserIdentity>() != null) accept() else reject()
     }
 }
@@ -162,6 +112,6 @@ val ApplicationCall.acUserIdentityNotNull: UserIdentity
     get() = accessControl.meta<UserIdentity>() ?: CR.Error.noACIdentity()
 
 @ContextDsl
-fun Route.accessControl(checker: ACPermission, builder: Route.() -> Unit): Route {
+fun Route.accessControl(checker: ACScope, builder: Route.() -> Unit): Route {
     return accessControl(builder = builder, checker = checker.permission, providerNames = emptyArray())
 }
