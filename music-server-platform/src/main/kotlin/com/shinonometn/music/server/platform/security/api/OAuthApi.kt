@@ -5,6 +5,7 @@ import com.shinonometn.koemans.coroutine.background
 import com.shinonometn.koemans.web.ParamValidationException
 import com.shinonometn.koemans.web.spring.route.KtorRoute
 import com.shinonometn.ktor.server.access.control.accessControl
+import com.shinonometn.ktor.server.access.control.meta
 import com.shinonometn.music.server.commons.Jackson
 import com.shinonometn.music.server.commons.asLocalDateTime
 import com.shinonometn.music.server.commons.respondPair
@@ -56,7 +57,7 @@ class OAuthApi(
 
     @KtorRoute("/config/{path...}")
     fun Route.textResources() {
-        val scopeDescriptions = securityService.allScopes.map { it.scope to it.descriptions }.toMap()
+        val scopeDescriptions = securityService.allScopes.associate { it.scope to it.descriptions }
 
         val additionalFunctions = mapOf(
             "scopeDescriptions" to TemplateMethodModelEx {
@@ -130,12 +131,19 @@ class OAuthApi(
 
             val user = userService.login(loginForm.username, loginForm.password) ?: OAuthError.invalidUsernameOrPassword()
 
+            val availableScopes = securityService.normalScopes.filter {
+                oauthParams.scope.contains(it.scope)
+            }.map { it.scope }.toMutableList()
+            availableScopes += securityService.advanceScopes.filter {
+                oauthParams.scope.contains(it.scope) && it.grantCondition(user)
+            }.map { it.scope }
+
             val session = OAuthSession(
                 user.id,
                 oauthParams.redirect,
                 System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(tempSessionTimeoutSeconds),
                 oauthParams.userAgent,
-                oauthParams.scope
+                availableScopes.toSet()
             )
 
             call.respondRedirect("/api/auth?${OAuthSession.ParameterKey}=${session.sign(config.sessionSalt)}")
@@ -146,42 +154,35 @@ class OAuthApi(
             // input : __ts
             get {
                 // Check ts exists
-                try {
-                    val ts = call.parameters["__ts"]
-                    val tempSession = OAuthSession.from(ts, config.sessionSalt)
+                val tempSession = call.accessControl.meta<OAuthSession>() ?: OAuthError.forMaintainer("Unexpected No Temp Session.")
 
-                    // Check user state
-                    val user = userService.findUserById(tempSession.userId) ?: OAuthError.userNotFound()
+                // Check user state
+                val user = userService.findUserById(tempSession.userId) ?: OAuthError.userNotFound()
 
-                    if (!user.enabled) OAuthError.accountDisabled()
+                if (!user.enabled) OAuthError.accountDisabled()
 
-                    val modal = mapOf(
-                        "user" to user,
-                        "session" to tempSession,
-                        "sessionSigned" to ts,
-                        "state" to "after_login",
-                    )
-                    call.respond(
-                        FreeMarkerContent(
-                            "oauth_confirm.ftl",
-                            mapOf(
-                                "modal" to modal,
-                                "modalJson" to background { Jackson.mapper.writeValueAsString(modal) }
-                            )
+                val modal = mapOf(
+                    "user" to user,
+                    "session" to tempSession,
+                    "sessionSigned" to tempSession.sign(config.sessionSalt),
+                    "state" to "after_login",
+                )
+                call.respond(
+                    FreeMarkerContent(
+                        "oauth_confirm.ftl",
+                        mapOf(
+                            "modal" to modal,
+                            "modalJson" to background { Jackson.mapper.writeValueAsString(modal) }
                         )
                     )
-                } catch (e: Exception) {
-                    OAuthError.exceptionRethrow(e)
-                }
+                )
             }
         }
 
         // OAuth allow action
         param("action", "allow") {
             post {
-                val ts = call.receiveParameters()["ts"] ?: OAuthError.forMaintainer("Invalid Temp Session")
-
-                val tempSession = OAuthSession.from(ts, config.sessionSalt)
+                val tempSession = call.accessControl.meta<OAuthSession>() ?: OAuthError.forMaintainer("Unexpected No Temp Session.")
 
                 val token = userService.registerApiToken(
                     tempSession.userId,

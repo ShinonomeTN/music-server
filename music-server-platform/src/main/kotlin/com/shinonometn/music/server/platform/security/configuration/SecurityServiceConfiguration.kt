@@ -5,14 +5,18 @@ import com.shinonometn.koemans.web.spring.configuration.KtorConfiguration
 import com.shinonometn.koemans.web.spring.springContext
 import com.shinonometn.ktor.server.access.control.AccessControl
 import com.shinonometn.music.server.platform.security.PlatformScope
+import com.shinonometn.music.server.platform.security.api.OAuthSession
+import com.shinonometn.music.server.platform.security.commons.ACScope
 import com.shinonometn.music.server.platform.security.commons.UserIdentity
 import com.shinonometn.music.server.platform.security.service.UserService
 import io.ktor.application.*
 import io.ktor.http.*
+import io.ktor.request.*
 import io.ktor.response.*
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import java.util.Collections
 import java.util.concurrent.TimeUnit
 
 @Configuration
@@ -47,7 +51,7 @@ open class SecurityServiceConfiguration {
         get() = System.currentTimeMillis() + sessionTimeoutMillis
 
     @Bean
-    open fun platformScopes() = PlatformScope.values()
+    open fun platformScopes() : Collection<ACScope> = PlatformScope.values().toList() + PlatformScope.Admin.values()
 
     @KtorConfiguration
     fun Application.accessControl() = install(AccessControl) {
@@ -85,6 +89,13 @@ open class SecurityServiceConfiguration {
             val identity = context.meta.filterIsInstance<UserIdentity>().firstOrNull() ?: return@provider
             val user = userService.findUserById(identity.userId)?.takeIf { it.enabled } ?: return@provider
             context.put(user)
+        }
+
+        provider("TempSession") { context ->
+            call.request.location()?.takeIf { it.startsWith("/api/auth") } ?: return@provider
+            val ts = call.parameters[OAuthSession.ParameterKey] ?: return@provider
+            val session = OAuthSession.from(ts, config.sessionSalt)
+            context.put(session)
         }
 
         onUnAuthorized {

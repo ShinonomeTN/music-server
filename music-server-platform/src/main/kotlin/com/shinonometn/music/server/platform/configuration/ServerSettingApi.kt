@@ -1,8 +1,7 @@
-package com.shinonometn.music.server.configuration
+package com.shinonometn.music.server.platform.configuration
 
 import com.shinonometn.koemans.web.spring.route.KtorRoute
 import com.shinonometn.music.server.commons.Jackson
-import com.shinonometn.music.server.platform.security.commons.AC
 import com.shinonometn.music.server.platform.security.commons.scopeDescriptions
 import com.shinonometn.music.server.platform.security.service.SecurityService
 import io.ktor.application.*

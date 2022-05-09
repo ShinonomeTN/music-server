@@ -1,4 +1,4 @@
-package com.shinonometn.music.server.configuration
+package com.shinonometn.music.server.platform.configuration
 
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Configuration

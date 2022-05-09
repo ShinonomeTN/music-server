@@ -1,4 +1,4 @@
-package com.shinonometn.music.server.configuration
+package com.shinonometn.music.server.platform.configuration
 
 import com.shinonometn.koemans.exposed.database.MariaDB
 import com.shinonometn.koemans.exposed.database.sqlDatabase

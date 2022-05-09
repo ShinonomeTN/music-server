@@ -3,6 +3,8 @@ package com.shinonometn.music.server.media
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.shinonometn.music.server.commons.Jackson
 import com.shinonometn.music.server.platform.security.commons.*
+import com.shinonometn.music.server.platform.security.data.UserData
+import com.shinonometn.music.server.platform.security.data.permissionList
 
 enum class MediaScope(override val scope: String, override val descriptions: ObjectNode) : ACScope {
     PlayListCreate("create_playlist",  Jackson {
@@ -34,10 +36,6 @@ enum class MediaScope(override val scope: String, override val descriptions: Obj
             "title" to "Cover Art Management"
             "description" to "Upload or delete all cover arts on server."
         }),
-        UserManagement("admin_user_management",Jackson {
-            "title" to "User Management"
-            "description" to "Manage all user on this server."
-        }),
         TrackManagement("admin_track_management", Jackson {
             "title" to "Track Management"
             "description" to "Create, update and delete all tracks on this server."
@@ -55,10 +53,8 @@ enum class MediaScope(override val scope: String, override val descriptions: Obj
             "description" to "Add, update or delete all artists on this server."
         });
 
-        override val grantCondition: ACChecker = AC@{
-            if (isSuperAdmin()) return@AC accept()
-            if (!hasPermission(scope)) return@AC reject("message", "insufficient_permission")
-            accept()
+        override val grantCondition: (UserData.Bean) -> Boolean = AC@{
+            it.isSuperAdmin() || it.permissionList().contains(scope)
         }
 
         override val permission: ACChecker = AC@{

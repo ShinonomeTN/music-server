@@ -7,6 +7,7 @@ import com.shinonometn.koemans.web.Validator
 import com.shinonometn.koemans.web.spring.route.KtorRoute
 import com.shinonometn.music.server.commons.businessError
 import com.shinonometn.music.server.commons.validationError
+import com.shinonometn.music.server.platform.security.PlatformScope
 import com.shinonometn.music.server.platform.security.commons.AC
 import com.shinonometn.music.server.platform.security.commons.accessControl
 import com.shinonometn.music.server.platform.security.service.UserService
@@ -62,7 +63,7 @@ class UserManagementApi(private val userService: UserService) {
     }
 
     @KtorRoute
-    fun Route.userManagement() = accessControl(AC.Scope.Admin.UserManagement) {
+    fun Route.userManagement() = accessControl(PlatformScope.Admin.UserManagement) {
         get {
             val paging = call.receivePageRequest()
             val result = background {

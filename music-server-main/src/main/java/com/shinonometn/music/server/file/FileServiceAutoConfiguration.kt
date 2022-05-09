@@ -1,6 +1,6 @@
 package com.shinonometn.music.server.file
 
-import com.shinonometn.music.server.configuration.MetaConfiguration
+import com.shinonometn.music.server.platform.configuration.MetaConfiguration
 import com.shinonometn.music.server.platform.file.PlatformFileService
 import com.shinonometn.music.server.platform.file.impl.LocalFileService
 import org.springframework.context.annotation.Bean

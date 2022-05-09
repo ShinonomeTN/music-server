@@ -6,7 +6,10 @@ import com.shinonometn.ktor.server.access.control.AccessControlCheckerContext
 import com.shinonometn.ktor.server.access.control.accessControl
 import com.shinonometn.ktor.server.access.control.meta
 import com.shinonometn.music.server.commons.CR
+import com.shinonometn.music.server.platform.security.PlatformScope
 import com.shinonometn.music.server.platform.security.data.UserData
+import com.shinonometn.music.server.platform.security.data.permissionList
+import com.shinonometn.music.server.platform.security.data.roleList
 import io.ktor.application.*
 import io.ktor.routing.*
 import io.ktor.util.pipeline.*
@@ -20,11 +23,9 @@ interface ACScope {
 }
 
 interface ACScopeAdvance : ACScope {
-    val grantCondition : ACChecker
+    val grantCondition : (UserData.Bean) -> Boolean
 }
-
 fun <T : ACScope> Collection<T>.scopeDescriptions() = map { it.descriptions }
-
 object AC {
     object Constants {
         const val SUPER_ADMIN = "super_admin"
@@ -49,25 +50,19 @@ object AC {
     }
 }
 
-private fun UserData.Bean.resourceObject(): JsonNode? {
-    return resources.takeIf { !it.isEmpty && it.isObject }
-}
-
-private fun UserData.Bean.permissionList(): List<String> {
-    val permission = resourceObject() ?: return emptyList()
-    val list = permission[com.shinonometn.music.server.platform.security.commons.AC.Constants.PERMISSION]?.takeIf { it.isArray } ?: return emptyList()
-    return list.map { it.asText() }
-}
-
-private fun UserData.Bean.roleList(): List<String> {
-    val role = resourceObject() ?: return emptyList()
-    val list = role[com.shinonometn.music.server.platform.security.commons.AC.Constants.ROLE]?.takeIf { it.isArray } ?: return emptyList()
-    return list.map { it.asText() }
-}
-
 fun AccessControlCheckerContext.isSuperAdmin(): Boolean {
     val user = meta<UserData.Bean>() ?: return false
-    return user.roleList().contains(com.shinonometn.music.server.platform.security.commons.AC.Constants.SUPER_ADMIN)
+    return user.isSuperAdmin()
+}
+
+fun UserData.Bean.isSuperAdmin() : Boolean {
+    return roleList().contains(AC.Constants.SUPER_ADMIN)
+}
+
+fun UserData.Bean.hasPermission(vararg permission : String) : Boolean {
+    val permissionList = permissionList().takeIf { it.isNotEmpty() } ?: return false
+    val given = permission.takeIf { it.isNotEmpty() } ?: return false
+    return permissionList.containsAll(given.toList())
 }
 
 fun AccessControlCheckerContext.hasPermission(vararg permission: String): Boolean {

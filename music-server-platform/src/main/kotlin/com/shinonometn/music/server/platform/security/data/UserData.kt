@@ -114,3 +114,19 @@ object UserData {
         val avatar = entity.avatar
     }
 }
+
+fun UserData.Bean.resourceObject(): JsonNode? {
+    return resources.takeIf { !it.isEmpty && it.isObject }
+}
+
+fun UserData.Bean.permissionList(): List<String> {
+    val permission = resourceObject() ?: return emptyList()
+    val list = permission[com.shinonometn.music.server.platform.security.commons.AC.Constants.PERMISSION]?.takeIf { it.isArray } ?: return emptyList()
+    return list.map { it.asText() }
+}
+
+fun UserData.Bean.roleList(): List<String> {
+    val role = resourceObject() ?: return emptyList()
+    val list = role[com.shinonometn.music.server.platform.security.commons.AC.Constants.ROLE]?.takeIf { it.isArray } ?: return emptyList()
+    return list.map { it.asText() }
+}

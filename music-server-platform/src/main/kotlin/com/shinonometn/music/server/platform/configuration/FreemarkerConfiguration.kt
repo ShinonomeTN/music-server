@@ -1,7 +1,6 @@
-package com.shinonometn.music.server.configuration
+package com.shinonometn.music.server.platform.configuration
 
 import com.shinonometn.koemans.web.spring.configuration.KtorConfiguration
-import com.shinonometn.music.server.commons.Jackson
 import freemarker.cache.ClassTemplateLoader
 import freemarker.cache.FileTemplateLoader
 import freemarker.cache.MruCacheStorage
