@@ -2,4 +2,5 @@ rootProject.name = 'music-server'
 include 'music-server-main'
 include 'music-server-commons'
 include 'music-server-platform'
+include 'music-server-media'
 
