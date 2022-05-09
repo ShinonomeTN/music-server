@@ -149,40 +149,44 @@ class OAuthApi(
             call.respondRedirect("/api/auth?${OAuthSession.ParameterKey}=${session.sign(config.sessionSalt)}")
         }
 
-        // Confirming OAuth permissions
-        param(OAuthSession.ParameterKey) {
-            // input : __ts
-            get {
-                // Check ts exists
-                val tempSession = call.accessControl.meta<OAuthSession>() ?: OAuthError.forMaintainer("Unexpected No Temp Session.")
 
-                // Check user state
-                val user = userService.findUserById(tempSession.userId) ?: OAuthError.userNotFound()
+        accessControl("TempSession", checker = { accept() }) {
+            // Confirming OAuth permissions
+            param(OAuthSession.ParameterKey) {
+                // input : __ts
+                get {
+                    // Check ts exists
+                    val tempSession = call.accessControl.meta<OAuthSession>() ?: OAuthError.forMaintainer("Unexpected No Temp Session.")
 
-                if (!user.enabled) OAuthError.accountDisabled()
+                    // Check user state
+                    val user = userService.findUserById(tempSession.userId) ?: OAuthError.userNotFound()
 
-                val modal = mapOf(
-                    "user" to user,
-                    "session" to tempSession,
-                    "sessionSigned" to tempSession.sign(config.sessionSalt),
-                    "state" to "after_login",
-                )
-                call.respond(
-                    FreeMarkerContent(
-                        "oauth_confirm.ftl",
-                        mapOf(
-                            "modal" to modal,
-                            "modalJson" to background { Jackson.mapper.writeValueAsString(modal) }
+                    if (!user.enabled) OAuthError.accountDisabled()
+
+                    val modal = mapOf(
+                        "user" to user,
+                        "session" to tempSession,
+                        "sessionSigned" to tempSession.sign(config.sessionSalt),
+                        "state" to "after_login",
+                    )
+                    call.respond(
+                        FreeMarkerContent(
+                            "oauth_confirm.ftl",
+                            mapOf(
+                                "modal" to modal,
+                                "modalJson" to background { Jackson.mapper.writeValueAsString(modal) }
+                            )
                         )
                     )
-                )
+                }
             }
         }
 
         // OAuth allow action
         param("action", "allow") {
             post {
-                val tempSession = call.accessControl.meta<OAuthSession>() ?: OAuthError.forMaintainer("Unexpected No Temp Session.")
+                val tsString = call.receiveParameters()[OAuthSession.ParameterKey] ?: OAuthError.forMaintainer("Unexpected No Temp Session.")
+                val tempSession = OAuthSession.from(tsString, config.sessionSalt)
 
                 val token = userService.registerApiToken(
                     tempSession.userId,

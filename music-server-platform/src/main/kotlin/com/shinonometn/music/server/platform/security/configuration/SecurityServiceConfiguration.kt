@@ -10,6 +10,7 @@ import com.shinonometn.music.server.platform.security.commons.ACScope
 import com.shinonometn.music.server.platform.security.commons.UserIdentity
 import com.shinonometn.music.server.platform.security.service.UserService
 import io.ktor.application.*
+import io.ktor.features.*
 import io.ktor.http.*
 import io.ktor.request.*
 import io.ktor.response.*
@@ -92,7 +93,7 @@ open class SecurityServiceConfiguration {
         }
 
         provider("TempSession") { context ->
-            call.request.location()?.takeIf { it.startsWith("/api/auth") } ?: return@provider
+            call.request.origin.uri.takeIf { it.startsWith("/api/auth") } ?: return@provider
             val ts = call.parameters[OAuthSession.ParameterKey] ?: return@provider
             val session = OAuthSession.from(ts, config.sessionSalt)
             context.put(session)

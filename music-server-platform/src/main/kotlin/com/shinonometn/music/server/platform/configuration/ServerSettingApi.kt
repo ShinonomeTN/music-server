@@ -16,14 +16,16 @@ class ServerSettingApi(
     private val metaConfig : MetaConfiguration,
     securityService: SecurityService
 ) {
-    private val scopeDescriptions = securityService.normalScopes.scopeDescriptions()
+    private val scopeDescriptions = securityService.normalScopes.associate { it.scope to it.descriptions }
 
     @KtorRoute("/.music_server.json")
     fun Route.serverSettings() = get {
         call.respond(Jackson {
             "allowGuest" to true
+            "allowGuestRecordingAccess" to true
             "host" to metaConfig.resolveHostName()
             "apiScopes" to scopeDescriptions
+            "apiVersion" to "1.0"
         })
     }
 

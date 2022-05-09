@@ -13,7 +13,7 @@ import io.ktor.routing.*
 import org.springframework.stereotype.Controller
 
 @Controller
-@KtorRoute("/api/meta/album")
+@KtorRoute("/api/meta/artist")
 class PublicArtistApi(private val service: MetaManagementService) {
 
     @KtorRoute

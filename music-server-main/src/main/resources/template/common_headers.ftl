@@ -21,7 +21,7 @@
     }
 
     .msc-main {
-        margin-top: 40pt; min-width: 200pt; min-height: 300pt;
+        margin-top: 40pt; margin-bottom: 40pt; min-width: 200pt; min-height: 300pt;
     }
 
     @media (min-width: 768px) {
