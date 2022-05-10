@@ -11,6 +11,10 @@ object TrackArtistData {
         return Table.deleteWhere { Table.colArtist eq id }
     }
 
+    fun deleteRelationshipsByTrackId(id: Long): Int {
+        return Table.deleteWhere { Table.colTrack eq id }
+    }
+
     object Table : LongIdTable("tb_track_artist") {
         val colTrack = reference("track_id", TrackData.Table)
         val colArtist = reference("artist_id", ArtistData.Table)

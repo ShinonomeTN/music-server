@@ -205,7 +205,9 @@ class MetaManagementService(private val database: SqlDatabase) {
 
     fun deleteTrack(id: Long): Int {
         return database {
-             RecordingData.deleteByTrackId(id) + TrackData.deleteById(id)
+             RecordingData.deleteByTrackId(id) +
+                     TrackArtistData.deleteRelationshipsByTrackId(id) +
+                     TrackData.deleteById(id)
         }
     }
 }

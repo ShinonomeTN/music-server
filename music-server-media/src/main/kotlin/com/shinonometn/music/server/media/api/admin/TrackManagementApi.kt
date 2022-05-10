@@ -4,6 +4,7 @@ import com.shinonometn.koemans.coroutine.background
 import com.shinonometn.koemans.utils.isNumber
 import com.shinonometn.koemans.web.Validator
 import com.shinonometn.koemans.web.spring.route.KtorRoute
+import com.shinonometn.music.server.commons.CR
 import com.shinonometn.music.server.commons.businessError
 import com.shinonometn.music.server.commons.vararg
 import com.shinonometn.music.server.media.MediaScope
@@ -78,10 +79,9 @@ class TrackManagementApi(private val service: MetaManagementService) {
 
             delete {
                 val id = call.parameters["id"]?.toLongOrNull() ?: businessError("id_should_be_number")
-                val result = background {
+                call.respond(CR.successOrFailed(background {
                     service.deleteTrack(id)
-                }
-                call.respond(mapOf("track" to result))
+                }))
             }
         }
     }

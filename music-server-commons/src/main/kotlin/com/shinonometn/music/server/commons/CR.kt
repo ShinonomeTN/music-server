@@ -1,10 +1,28 @@
 package com.shinonometn.music.server.commons
 
+import com.shinonometn.accounting.common.MicroRpc
 import io.ktor.application.*
 import io.ktor.response.*
 
 object CR {
     fun successOrFailed(boolean: Boolean) = mapOf("message" to if (boolean) "success" else "failed")
+
+    fun successOrFailed(any : Any?) = mapOf("message" to when(any) {
+        null -> "failed"
+        is Exception -> MicroRpc.newIntent("failed") {
+            value("exception")
+            value(any.javaClass.name)
+            value(any.message ?: "")
+        }
+        is Number -> if(any.toDouble() > 0) MicroRpc("success") {
+            value("count")
+            value(any.toString())
+        } else MicroRpc("failed") {
+            value("count")
+            value(any.toString())
+        }
+        else -> "success"
+    })
 
     object Error {
         fun noACSession(): Nothing = throw BusinessException("no_ac_session", "unexpected_error")
