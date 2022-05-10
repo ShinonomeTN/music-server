@@ -23,30 +23,6 @@ class UserService(private val database: SqlDatabase) {
 
     private val logger = LoggerFactory.getLogger(UserService::class.java)
 
-    private val userServiceJobContext = CoroutineScope(Dispatchers.IO)
-    private val userServiceJob = userServiceJobContext.launch(start = CoroutineStart.LAZY) {
-        logger.info("User service job started.")
-        while (isActive) {
-            try {
-                var clearCount = 0
-                database {
-                    clearCount += AppTokenData.clearExpired()
-                    clearCount += SessionData.clearExpired()
-                }
-                if (clearCount > 0) logger.info("Clear $clearCount expired tokens and sessions.")
-                delay(5000)
-            } catch (e: Exception) {
-                logger.info("UserService job meet exception.", e)
-            }
-        }
-    }
-
-    @EventListener(PlatformInitAction.InitFinished::class)
-    fun userServiceJobKickStart() {
-        if (userServiceJob.isActive) return
-        userServiceJob.start()
-    }
-
     fun registerSession(userSession: UserSession, ipAddress: String, userAgent: String) {
         val sessionId = userSession.sessionId
         database {
