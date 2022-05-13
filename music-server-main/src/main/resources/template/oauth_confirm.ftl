@@ -29,7 +29,7 @@
         </div>
         <form action="/api/auth?action=allow" method="post" style="width: 100%">
             <input type="hidden" name="__ts" id="__ts" value="[=modal.sessionSigned]"/>
-            <button class="btn btn-success" style="width: 100%">Allow</button>
+            <button class="btn btn-primary" style="width: 100%">Allow</button>
         </form>
         <button class="btn btn-dark" @click="$emit('disallow')">Disallow</button>
     </div>
