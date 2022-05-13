@@ -26,6 +26,7 @@ class ServerSettingApi(
             "host" to metaConfig.resolveHostName()
             "apiScopes" to scopeDescriptions
             "apiVersion" to "1.0"
+            "protocol" to metaConfig.protocol
         })
     }
 
