@@ -18,6 +18,17 @@ class PublicAlbumApi(private val service: MetaManagementService) {
 
     @KtorRoute
     fun Route.albumApi() = accessControl(AC.Guest) {
+        /** @restful_api_doc
+         * # Get all albums
+         * [GET] /api/meta/album
+         * ## Parameters
+         * - @bean(Pagination)
+         * ## Returns
+         * @bean(Page) of @bean(AlbumData.Bean)
+         * ```
+         * {..., content: [{ album : { @bean(AlbumData.Bean) } }]}
+         * ```
+         */
         get {
             val paging = call.receivePageRequest()
             val result = background { service.findAllAlbums(paging).convert { mapOf("album" to it) } }
@@ -25,12 +36,34 @@ class PublicAlbumApi(private val service: MetaManagementService) {
         }
 
         route("/{id}") {
+            /** @restful_api_doc
+             * # Get album info
+             * [GET] /api/meta/album/{id}
+             * ## Parameters
+             * - id : album id
+             * ## Returns
+             * @bean(AlbumData.Bean)
+             * ```
+             * { album : { @bean(AlbumData.Bean) } }
+             * ```
+             */
             get {
                 val id = call.parameters["id"]?.toLongOrNull() ?: businessError("id_should_be_number")
                 val result = background { service.getAlbumById(id) }
                 call.respond(mapOf("album" to result))
             }
 
+            /** @restful_api_doc
+             * # Get album tracks
+             * [GET] /api/meta/album/{id}/track
+             * ## Parameters
+             * - id : album id
+             * ## Returns
+             * List of @bean(TrackData.Bean)
+             * ```
+             * [ { track: { @bean(TrackData.Bean) } } ]
+             * ```
+             */
             route("/track") {
                 get {
                     val id = call.parameters["id"]?.toLongOrNull() ?: businessError("id_should_be_number")

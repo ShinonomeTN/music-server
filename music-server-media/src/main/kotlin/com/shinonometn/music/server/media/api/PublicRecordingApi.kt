@@ -14,6 +14,19 @@ import org.springframework.stereotype.Controller
 @Controller
 @KtorRoute("/api/meta")
 class PublicRecordingApi(private val service: MetaManagementService) {
+    /** @restful_api_doc
+     * # Get track recordings
+     * [GET] /api/meta/track/{id}/recording
+     * ## Parameters
+     * - id : track id
+     * ## Body
+     *
+     * ## Returns
+     * List of @bean(RecordingData.Bean)
+     * ```
+     * [{ recording : { @bean(RecordingData.Bean) } }]
+     * ```
+     */
     @KtorRoute
     fun Route.recordingApi() = accessControl(AC.Guest) {
         route("/track/{id}/recording") {

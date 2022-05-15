@@ -1,0 +1,30 @@
+buildscript {
+    ext.kotlin_version = "1.4.32"
+    ext.ktor_version = '1.5.3'
+    ext.exposed_version = '0.36.1'
+    ext.jackson_version = '2.10.3'
+    ext.koemans_version = '1.1.1-SNAPSHOT'
+
+    ext.java_version = "1.8"
+}
+
+plugins {
+    id 'groovy'
+    id "org.jetbrains.kotlin.jvm" version "$kotlin_version"
+//    id "org.jetbrains.kotlin.plugin.allopen" version "$kotlin_version"
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation localGroovy()
+}
+
+//allOpen {
+//
+//}
+
+compileKotlin { kotlinOptions.jvmTarget = "$java_version" }
+compileTestKotlin { kotlinOptions.jvmTarget = "$java_version" }

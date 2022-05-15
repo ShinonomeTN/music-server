@@ -3,3 +3,7 @@ description = "Music server commons"
 dependencies {
 
 }
+
+greeting {
+    content = "Music server utils module"
+}

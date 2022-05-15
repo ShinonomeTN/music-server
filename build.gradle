@@ -18,7 +18,6 @@ allprojects {
         mavenCentral()
         maven {
             url = "https://nexus.shinonometn.com/repository/maven-public/"
-
         }
     }
 
@@ -32,6 +31,8 @@ subprojects {
 
     apply plugin: 'java'
     apply plugin: 'org.jetbrains.kotlin.jvm'
+    apply plugin: 'greeting'
+    apply plugin: 'music-server-document'
 
     sourceCompatibility = java_version
     targetCompatibility = java_version

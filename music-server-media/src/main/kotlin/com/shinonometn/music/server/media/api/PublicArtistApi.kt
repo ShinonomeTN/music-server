@@ -18,12 +18,33 @@ class PublicArtistApi(private val service: MetaManagementService) {
 
     @KtorRoute
     fun Route.artistApi() = accessControl(AC.Guest) {
+        /** @restful_api_doc
+         * # Get all artist
+         * [GET] /api/meta/artists
+         * ## Parameters
+         * - @bean(Pagination)
+         * ## Returns
+         * @bean(Page) of @bean(ArtistData.Bean)
+         */
         get {
             val paging = call.receivePageRequest()
             val result = background { service.findAllArtists(paging).convert { mapOf("artist" to it) } }
             call.respond(result)
         }
 
+        /** @restful_api_doc
+         * # Get artist info
+         * [GET] /api/meta/artists
+         * ## Parameters
+         * - id : artist id
+         * ## Body
+         *
+         * ## Returns
+         * @bean(ArtistData.Bean)
+         * ```
+         * { artist: { @bean(ArtistData.Bean) } }
+         * ```
+         */
         route("/{id}") {
             get {
                 val id = call.parameters["id"]?.toLongOrNull() ?: businessError("id_should_be_number")

@@ -29,6 +29,17 @@ class PlaylistApi(private val playlistService: PlaylistService, private val user
 
     @KtorRoute
     fun Route.listPlaylists() = accessControl(MediaScope.PlayListRead) {
+        /** @restful_api_doc
+         * # Get playlist
+         * [GET] /api/playlist
+         * ## Parameters
+         * - @bean(Page)
+         * ## Returns
+         * @bean(Page) with @bean(PlaylistData.Bean)
+         * ```
+         * { ..., content : [{ playlist: { @bean(PlaylistData.Bean) } }]}
+         * ```
+         */
         get {
             val identity = call.acUserIdentityNotNull
             val userId = identity.userId
@@ -41,6 +52,16 @@ class PlaylistApi(private val playlistService: PlaylistService, private val user
         }
     }
 
+    /** @restful_api_param_doc
+     * @bean_name PlaylistForm
+     * # Playlist Request
+     * | field name  | type    | required | description |
+     * | ----------- | ------- | -------- | ----------- |
+     * | isPrivate   | Boolean | false    | default is `false` |
+     * | name        | String  | true     | not blank and lesser than 255 chars |
+     * | description | String  | false    | not blank and lesser than 255 if set |
+     * | coverArtId  | Int     | false    | uploaded cover art id |
+     */
     class PlaylistForm(params: Parameters) {
         init {
             validator.validate(params)
@@ -63,6 +84,17 @@ class PlaylistApi(private val playlistService: PlaylistService, private val user
 
     @KtorRoute
     fun Route.createPlaylist() = accessControl(MediaScope.PlayListCreate) {
+        /** @restful_api_doc
+         * # Create Playlist
+         * [POST] /api/playlist
+         * ## Body
+         * @bean(PlaylistForm)
+         * ## Returns
+         * Created @bean(PlaylistData.Bean)
+         * ```
+         * { playlist : { @bean(PlaylistData.Bean) } }
+         * ```
+         */
         post {
             val form = PlaylistForm(call.receiveParameters())
             val session = call.acUserIdentityNotNull
@@ -73,6 +105,17 @@ class PlaylistApi(private val playlistService: PlaylistService, private val user
         }
     }
 
+    /** @restful_api_doc
+     * # Get Playlist
+     * [POST] /api/playlist/{id}
+     * ## Parameters
+     * - id : playlist id
+     * ## Returns
+     * @bean(PlaylistData.Bean) with @bean(UserProfile)
+     * ```
+     * { playlist: { ... }, creator: { ... } }
+     * ```
+     */
     @KtorRoute("/{id}")
     fun Route.getPlaylist() = get {
         val id = call.parameters["id"]!!.toLong()
@@ -91,6 +134,19 @@ class PlaylistApi(private val playlistService: PlaylistService, private val user
 
     @KtorRoute("/{id}")
     fun Route.updatePlaylist() = accessControl(MediaScope.PlayListUpdate) {
+        /** @restful_api_doc
+         * # Update playlist base info
+         * [POST] /api/playlist/{id}
+         * ## Parameters
+         * - id : playlist id
+         * ## Body
+         * @bean(PlaylistForm)
+         * ## Returns
+         * New state of @bean(PlaylistData.Bean)
+         * ```
+         * { playlist: { ... } }
+         * ```
+         */
         post {
             val id = call.parameters["id"]?.toLongOrNull() ?: validationError("invalid_id")
             val form = PlaylistForm(call.receiveParameters())
@@ -105,6 +161,19 @@ class PlaylistApi(private val playlistService: PlaylistService, private val user
 
     @KtorRoute("/{id}")
     fun Route.deletePlaylist() = accessControl(MediaScope.PlayListDelete) {
+        /** @restful_api_doc
+         * # Delete a playlist
+         * [DELETE] /api/playlist/{id}
+         * ## Parameters
+         * - id : playlist id
+         * ## Body
+         * @bean(PlaylistForm)
+         * ## Returns
+         * New state of @bean(PlaylistData.Bean)
+         * ```
+         * { playlist: { ... } }
+         * ```
+         */
         delete {
             val id = call.parameters["id"]?.toLongOrNull() ?: validationError("invalid_id")
             val session = call.acUserIdentityNotNull
@@ -122,6 +191,20 @@ class PlaylistApi(private val playlistService: PlaylistService, private val user
 
     @KtorRoute("/{id}/item")
     fun Route.listPlaylistItem() = accessControl(MediaScope.PlayListRead) {
+        /** @restful_api_doc
+         * # Get items in playlist
+         * [GET] /api/playlist/{id}/item
+         * ## Parameters
+         * - id : playlist id
+         * ## Sort params
+         * - order: playlist item order
+         * - id : playlist item id
+         * ## Returns
+         * @bean(Page) of @bean(PlaylistItemData.Bean)
+         * ```
+         * { ..., content: [{ playlistItem: { @bean(PlaylistItemData.Bean) } }] }
+         * ```
+         */
         get {
             val id = call.parameters["id"]?.toLongOrNull() ?: validationError("invalid_id")
             val paging = call.receivePageRequest()
@@ -139,12 +222,32 @@ class PlaylistApi(private val playlistService: PlaylistService, private val user
         }
     }
 
+    /** @restful_api_param_doc
+     * @bean_name PlayListItemForm
+     * # PlayListItem create
+     * | field name  | type       | required | description |
+     * | ----------- | ------- | -------- | ----------- |
+     * | trackId     | Array[Int] | true     | target track id  |
+     */
     class PlayListItemForm(params: Parameters) {
         val trackIds = params.getAll("trackId")?.mapNotNull { it.toLongOrNull() } ?: validationError("invalid_track_ids")
     }
 
     @KtorRoute("/{id}/item")
     fun Route.addPlayListItem() = accessControl(MediaScope.PlayListUpdate) {
+        /** @restful_api_doc
+         * # Add item to playlist
+         * [POST] /api/playlist/{id}/item
+         * ## Parameters
+         * - id : playlist id
+         * ## Body
+         * @bean(PlayListItemForm)
+         * ## Returns
+         * Success or failed
+         * ```json
+         * { message: "success" | "failed" }
+         * ```
+         */
         post {
             val id = call.parameters["id"]?.toLongOrNull() ?: validationError("invalid_id")
             val form = PlayListItemForm(call.receiveParameters())
@@ -161,12 +264,32 @@ class PlaylistApi(private val playlistService: PlaylistService, private val user
         }
     }
 
+    /** @restful_api_param_doc
+     * @bean_name PlayListItemDeleteForm
+     * # PlaylistItem delete
+     * | field name  | type       | required | description |
+     * | ----------- | ------- | -------- | ----------- |
+     * | itemId      | Array[Int] | true     | playlist item id |
+     */
     class PlayListItemDeleteForm(params: Parameters) {
         val itemIds = params.getAll("itemId")?.mapNotNull { it.toLongOrNull() } ?: validationError("invalid_id")
     }
 
     @KtorRoute("/{id}/item")
     fun Route.deletePlayListItem() = accessControl(MediaScope.PlayListDelete) {
+        /** @restful_api_doc
+         * # Delete playlist item
+         * [DELETE] /api/playlist/{id}/item
+         * ## Parameters
+         * - id : playlist id
+         * ## Body
+         * @bean(PlayListItemDeleteForm)
+         * ## Returns
+         * Success or failed
+         * ```json
+         * { message: "success" | "failed" }
+         * ```
+         */
         delete {
             val id = call.parameters["id"]?.toLongOrNull() ?: validationError("invalid_id")
             val form = PlayListItemDeleteForm(call.receiveParameters())
@@ -189,6 +312,19 @@ class PlaylistApi(private val playlistService: PlaylistService, private val user
 
     @KtorRoute("/{id}/item/{itemId}")
     fun Route.movePlaylistItemAbove() = accessControl(MediaScope.PlayListUpdate) {
+        /** @restful_api_doc
+         * # Move playlist item above target item
+         * [POST] /api/playlist/{id}/{itemId}?action=move_above&targetItemId={targetItemId}
+         * ## Parameters
+         * - id : playlist id
+         * - itemId : playlist item id
+         * - targetItemId : target playlist item id
+         * ## Returns
+         * Success or failed
+         * ```json
+         * { message: "success" | "failed" }
+         * ```
+         */
         param("action", "move_above") {
             post {
                 val params = PlayListItemMoveParams(call.parameters)
@@ -206,6 +342,19 @@ class PlaylistApi(private val playlistService: PlaylistService, private val user
     @KtorRoute("/{id}/item/{itemId}")
     fun Route.movePlaylistItemBelow() = accessControl(MediaScope.PlayListUpdate) {
         param("action", "move_below") {
+            /** @restful_api_doc
+             * # Move playlist item below target item
+             * [POST] /api/playlist/{id}/{itemId}?action=move_below&targetItemId={targetItemId}
+             * ## Parameters
+             * - id : playlist id
+             * - itemId : playlist item id
+             * - targetItemId : target playlist item id
+             * ## Returns
+             * Success or failed
+             * ```json
+             * { message: "success" | "failed" }
+             * ```
+             */
             post {
                 val params = PlayListItemMoveParams(call.parameters)
                 val session = call.acUserIdentityNotNull

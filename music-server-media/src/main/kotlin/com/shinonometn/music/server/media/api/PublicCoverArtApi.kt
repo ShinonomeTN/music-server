@@ -19,6 +19,17 @@ import javax.imageio.ImageIO
 @Controller
 @KtorRoute("/api/cover-art")
 class PublicCoverArtApi(private val coverArtService: CoverArtService) {
+    /** @restful_api_param_doc
+     * @bean_name CoverArtRequestParams
+     * # Optional covert art request parameters
+     * | field name  | type    | required | description |
+     * | ----------- | ------- | -------- | ----------- |
+     * | width       | Int     | false    | width of the cover art |
+     * | height      | Int     | false    | height of the cover art |
+     * | background  | String  | false    | color of the background in hex representation |
+     * | mode        | String  | false    | fill, cover, fit_width, fit_height |
+     * | type        | String  | false    | file type, jpg or png, default is jpg|
+     */
     class CoverArtRequestParams(parameters: Parameters) {
         companion object {
             private val allowedTypes = setOf("jpg", "png")
@@ -39,6 +50,15 @@ class PublicCoverArtApi(private val coverArtService: CoverArtService) {
 
     @KtorRoute("/{path...}")
     fun Route.getCoverArt() = accessControl(AC.Guest) {
+        /** @restful_api_doc
+         * # Get cover art
+         * [GET] /api/cover-art/{path}
+         * ## Parameters
+         * - path: the path of the cover art
+         * - @bean(CoverArtRequestParams)
+         * ## Returns
+         * Covert art image
+         */
         get {
             val pathSuffix = call
                 .parameters

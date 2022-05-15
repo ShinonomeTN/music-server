@@ -21,8 +21,8 @@ class ServerSettingApi(
     @KtorRoute("/.music_server.json")
     fun Route.serverSettings() = get {
         call.respond(Jackson {
-            "allowGuest" to true
-            "allowGuestRecordingAccess" to true
+            "allowGuest" to metaConfig.allowGuest
+            "allowGuestRecordingAccess" to metaConfig.allowGuestRecordingAccess
             "host" to metaConfig.resolveHostName()
             "apiScopes" to scopeDescriptions
             "apiVersion" to "1.0"

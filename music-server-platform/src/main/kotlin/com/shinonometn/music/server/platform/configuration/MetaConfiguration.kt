@@ -8,9 +8,19 @@ open class MetaConfiguration(private val deployConfig : DeploymentConfiguration)
 
     @Value("\${application.hostname:}")
     var hostname : String = ""
+        private set
 
     @Value("\${application.protocol:http}")
     var protocol : String = "http"
+        private set
+
+    @Value("\${application.allowGuest:true}")
+    var allowGuest : Boolean = true
+        private set
+
+    @Value("\${application.allowGuestRecordingAccess:true}")
+    var allowGuestRecordingAccess : Boolean = true
+        private set
 
     private val commonPorts = listOf(80, 443)
     fun resolveHostName() : String {
