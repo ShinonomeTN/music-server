@@ -5,6 +5,7 @@ import com.shinonometn.koemans.receivePageRequest
 import com.shinonometn.koemans.web.spring.route.KtorRoute
 import com.shinonometn.ktor.server.access.control.accessControl
 import com.shinonometn.music.server.commons.businessError
+import com.shinonometn.music.server.commons.validationError
 import com.shinonometn.music.server.media.service.MetaManagementService
 import com.shinonometn.music.server.platform.security.commons.AC
 import io.ktor.application.*
@@ -20,7 +21,7 @@ class PublicArtistApi(private val service: MetaManagementService) {
     fun Route.artistApi() = accessControl(AC.Guest) {
         /** @restful_api_doc
          * # Get all artist
-         * [GET] /api/meta/artists
+         * [GET] /api/meta/artist
          * ## Parameters
          * - @bean(Pagination)
          * ## Returns
@@ -36,8 +37,27 @@ class PublicArtistApi(private val service: MetaManagementService) {
         }
 
         /** @restful_api_doc
+         * # Get artists by name
+         * [GET] /api/meta/artist?name={name}
+         * ## Parameters
+         * - name : Artist name
+         * ## Returns
+         * List of @bean(ArtistData.Bean)
+         * ```
+         * { artist : @bean(ArtistData.Bean) }
+         * ```
+         */
+        param("name") {
+            get {
+                val name = call.parameters["name"] ?: validationError("invalid_artist_name")
+                val result = background { service.findArtistsByName(name).map { mapOf("artist" to it) } }
+                call.respond(result)
+            }
+        }
+
+        /** @restful_api_doc
          * # Get artist info
-         * [GET] /api/meta/artists
+         * [GET] /api/meta/artist
          * ## Parameters
          * - id : artist id
          * ## Body

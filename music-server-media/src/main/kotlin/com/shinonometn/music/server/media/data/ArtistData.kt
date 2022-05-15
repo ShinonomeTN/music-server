@@ -32,6 +32,10 @@ object ArtistData {
         return Table.deleteWhere { Table.id eq id }
     }
 
+    fun findByName(name: String): List<Bean> {
+        return Entity.find { Table.colName eq name }.map { Bean(it) }
+    }
+
     object Table : LongIdMetaDataTable("tb_artist_data") {
         val colName = varchar("name", 255)
     }

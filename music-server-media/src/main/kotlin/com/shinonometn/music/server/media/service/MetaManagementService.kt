@@ -197,17 +197,17 @@ class MetaManagementService(private val database: SqlDatabase) {
         AlbumArtCoverData.removeAllRelationsByAlbumId(id) + AlbumData.deleteById(id)
     }
 
-    fun deleteArtist(id: Long): Int {
-        return TrackArtistData.deleteByArtistId(id) +
-                ArtistCoverArtData.removeAllRelationsByArtistId(id) +
-                ArtistData.deleteById(id)
+    fun deleteArtist(id: Long): Int = TrackArtistData.deleteByArtistId(id) +
+            ArtistCoverArtData.removeAllRelationsByArtistId(id) +
+            ArtistData.deleteById(id)
+
+    fun deleteTrack(id: Long): Int = database {
+         RecordingData.deleteByTrackId(id) +
+                 TrackArtistData.deleteRelationshipsByTrackId(id) +
+                 TrackData.deleteById(id)
     }
 
-    fun deleteTrack(id: Long): Int {
-        return database {
-             RecordingData.deleteByTrackId(id) +
-                     TrackArtistData.deleteRelationshipsByTrackId(id) +
-                     TrackData.deleteById(id)
-        }
+    fun findArtistsByName(name: String) = database {
+        ArtistData.findByName(name)
     }
 }
