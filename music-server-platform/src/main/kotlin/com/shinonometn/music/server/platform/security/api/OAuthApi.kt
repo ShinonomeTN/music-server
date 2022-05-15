@@ -78,8 +78,16 @@ class OAuthApi(
     fun Route.oauth() {
         val tempSessionTimeoutSeconds = TimeUnit.MINUTES.toSeconds(5)
 
-        // The login page
-        // input : user_agent, scope, redirect
+        /** @restful_api_doc
+         * # OAuth login page
+         * [GET] /api/auth
+         * ## Parameters
+         * - user_agent: optional, user agent to present
+         * - scope : required, oauth scopes
+         * - redirect : required, redirect to another page after success. use `internal` for no redirect
+         * ## Returns
+         * OAuth login page
+         */
         get {
             val session = call.acUserSession
 

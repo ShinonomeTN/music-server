@@ -25,6 +25,9 @@ class PublicArtistApi(private val service: MetaManagementService) {
          * - @bean(Pagination)
          * ## Returns
          * @bean(Page) of @bean(ArtistData.Bean)
+         * ```
+         * { ..., content: [{ artist : @bean(ArtistData.Bean) }] }
+         * ```
          */
         get {
             val paging = call.receivePageRequest()
@@ -42,7 +45,7 @@ class PublicArtistApi(private val service: MetaManagementService) {
          * ## Returns
          * @bean(ArtistData.Bean)
          * ```
-         * { artist: { @bean(ArtistData.Bean) } }
+         * { artist: @bean(ArtistData.Bean) }
          * ```
          */
         route("/{id}") {

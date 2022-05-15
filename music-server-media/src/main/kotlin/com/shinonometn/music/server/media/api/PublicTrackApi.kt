@@ -26,7 +26,7 @@ class PublicTrackApi(private val service: MetaManagementService) {
          * ## Returns
          * @bean(Page) of @bean(TrackData.Bean)
          * ```
-         * { ..., content: [{ track: { @bean(TrackData.Bean) } }]}
+         * { ..., content: [{ track: @bean(TrackData.Bean) }]}
          * ```
          */
         get {
@@ -49,7 +49,7 @@ class PublicTrackApi(private val service: MetaManagementService) {
              * ## Returns
              * @bean(TrackData.Bean)
              * ```
-             * { track: { @bean(TrackData.Bean) } }
+             * { track: @bean(TrackData.Bean) }
              * ```
              */
             get {

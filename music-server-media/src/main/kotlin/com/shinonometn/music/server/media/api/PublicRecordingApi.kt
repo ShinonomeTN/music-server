@@ -24,7 +24,7 @@ class PublicRecordingApi(private val service: MetaManagementService) {
      * ## Returns
      * List of @bean(RecordingData.Bean)
      * ```
-     * [{ recording : { @bean(RecordingData.Bean) } }]
+     * [{ recording : @bean(RecordingData.Bean) }]
      * ```
      */
     @KtorRoute

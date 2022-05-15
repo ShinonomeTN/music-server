@@ -22,9 +22,17 @@ class LoginApi(
     private val userService: UserService,
     private val config: SecurityServiceConfiguration
 ) {
-
     @KtorRoute("/login")
     fun Route.userInfo() = accessControl(PlatformScope.UserInfo) {
+        /** @restful_api_doc
+         * # Get current user info
+         * [GET] /api/auth
+         * ## Returns
+         * @bean(UserData.Bean)
+         * ```
+         * { user : { @bean(UserData.Bean) } }
+         * ```
+         */
         get {
             val identity = call.acUserIdentityNotNull
             val user = background { userService.findById(identity.userId) }
@@ -32,6 +40,17 @@ class LoginApi(
         }
     }
 
+    /** @restful_api_doc
+     * # Login
+     * [GET] /api/auth/login
+     * ## Body
+     * @bean(LoginRequest)
+     * ## Returns
+     * @bean(UserSession)
+     * ```
+     * { session : @bean(UserSession) }
+     * ```
+     */
     @KtorRoute("/login")
     fun Route.login() = post {
         val request = LoginRequest(call.receiveParameters())
@@ -57,6 +76,15 @@ class LoginApi(
 
     @KtorRoute("/login/refresh")
     fun Route.refreshSession() = accessControl("UserSession", checker = AC.HasSession) {
+        /** @restful_api_doc
+         * # Refresh user session
+         * [POST] /api/auth/login/refresh
+         * ## Returns
+         * @bean(UserSession)
+         * ```
+         * { session: { @bean(UserSession) } }
+         * ```
+         */
         post {
             val session = call.acUserSessionNotNull
             val newSession = session.copy(config.sessionTimeoutTimestamp)
@@ -74,6 +102,15 @@ class LoginApi(
 
     @KtorRoute("/logout")
     fun Route.logout() = accessControl("UserSession", checker = AC.HasSession) {
+        /** @restful_api_doc
+         * # User logout
+         * [POST] /api/auth/logout
+         * ## Returns
+         * Success or failed
+         * ```
+         * { message: "success" | "failed" }
+         * ```
+         */
         post {
             val session = call.acUserSessionNotNull
             val result = userService.removeSession(session.sessionId) > 0

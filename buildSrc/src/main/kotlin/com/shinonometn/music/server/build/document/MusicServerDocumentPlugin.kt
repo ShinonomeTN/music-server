@@ -15,14 +15,6 @@ class MusicServerDocumentPlugin : Plugin<Project> {
         project.tasks.register(MusicServerDocumentTask.TASK_NAME, MusicServerDocumentTask::class.java) {
             it.group = TASK_GROUP
             val config = project.extensions.getByName(MusicServerDocumentExtension.MODAL_NAME) as MusicServerDocumentExtension
-
-            if (config.scannerTasks.isEmpty()) {
-                logger.warn(
-                    "No target to scan in ${project.name}. " +
-                            "use `musicServerDocument { }` dsl to configure this plugin."
-                )
-                return@register
-            }
             it.scannerList.addAll(config.scannerTasks)
         }
     }

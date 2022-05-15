@@ -1,6 +1,5 @@
 package com.shinonometn.music.server.commons
 
-import com.shinonometn.accounting.common.MicroRpc
 import io.ktor.application.*
 import io.ktor.response.*
 

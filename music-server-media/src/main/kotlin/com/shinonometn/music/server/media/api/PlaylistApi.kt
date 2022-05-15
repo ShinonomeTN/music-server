@@ -37,7 +37,7 @@ class PlaylistApi(private val playlistService: PlaylistService, private val user
          * ## Returns
          * @bean(Page) with @bean(PlaylistData.Bean)
          * ```
-         * { ..., content : [{ playlist: { @bean(PlaylistData.Bean) } }]}
+         * { ..., content : [{ playlist: @bean(PlaylistData.Bean) }]}
          * ```
          */
         get {
@@ -92,7 +92,7 @@ class PlaylistApi(private val playlistService: PlaylistService, private val user
          * ## Returns
          * Created @bean(PlaylistData.Bean)
          * ```
-         * { playlist : { @bean(PlaylistData.Bean) } }
+         * { playlist : @bean(PlaylistData.Bean) }
          * ```
          */
         post {
@@ -113,7 +113,7 @@ class PlaylistApi(private val playlistService: PlaylistService, private val user
      * ## Returns
      * @bean(PlaylistData.Bean) with @bean(UserProfile)
      * ```
-     * { playlist: { ... }, creator: { ... } }
+     * { playlist: @bean(PlaylistData.Bean), creator: @bean(UserProfile) }
      * ```
      */
     @KtorRoute("/{id}")
@@ -144,7 +144,7 @@ class PlaylistApi(private val playlistService: PlaylistService, private val user
          * ## Returns
          * New state of @bean(PlaylistData.Bean)
          * ```
-         * { playlist: { ... } }
+         * { playlist: @bean(PlaylistData.Bean) }
          * ```
          */
         post {
@@ -171,7 +171,7 @@ class PlaylistApi(private val playlistService: PlaylistService, private val user
          * ## Returns
          * New state of @bean(PlaylistData.Bean)
          * ```
-         * { playlist: { ... } }
+         * { playlist: @bean(PlaylistData.Bean) }
          * ```
          */
         delete {
@@ -202,7 +202,7 @@ class PlaylistApi(private val playlistService: PlaylistService, private val user
          * ## Returns
          * @bean(Page) of @bean(PlaylistItemData.Bean)
          * ```
-         * { ..., content: [{ playlistItem: { @bean(PlaylistItemData.Bean) } }] }
+         * { ..., content: [{ playlistItem: @bean(PlaylistItemData.Bean) }] }
          * ```
          */
         get {
@@ -268,7 +268,7 @@ class PlaylistApi(private val playlistService: PlaylistService, private val user
      * @bean_name PlayListItemDeleteForm
      * # PlaylistItem delete
      * | field name  | type       | required | description |
-     * | ----------- | ------- | -------- | ----------- |
+     * | ----------- | -------    | -------- | ----------- |
      * | itemId      | Array[Int] | true     | playlist item id |
      */
     class PlayListItemDeleteForm(params: Parameters) {

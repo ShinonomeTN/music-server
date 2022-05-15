@@ -2,7 +2,7 @@ buildscript {
     ext.kotlin_version = "1.4.32"
     ext.ktor_version = '1.5.3'
     ext.exposed_version = '0.36.1'
-    ext.jackson_version = '2.10.3'
+    ext.jackson_version = '2.13.3'
     ext.koemans_version = '1.1.1-SNAPSHOT'
 
     ext.java_version = "1.8"
@@ -20,6 +20,8 @@ repositories {
 
 dependencies {
     implementation localGroovy()
+    // https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind
+    implementation "com.fasterxml.jackson.core:jackson-databind:$jackson_version"
 }
 
 //allOpen {

@@ -1,4 +1,4 @@
-package com.shinonometn.accounting.common
+package com.shinonometn.music.server.commons
 
 import java.net.URLDecoder
 import java.net.URLEncoder
@@ -22,7 +22,7 @@ object MicroRpc {
         }
     }
 
-    class Intent internal constructor(val name: String, val params: List<Param<*>>, private val origin : String) {
+    class Intent internal constructor(val name: String, val params: List<Param<*>>, private val origin: String) {
         override fun toString() = origin
 
         companion object {
@@ -34,7 +34,7 @@ object MicroRpc {
     private val commandPattern = Regex("^([A-Za-z0-9_.]+?)(:.+|:)?$")
 
     fun parse(command: String): Intent {
-        if(command.isBlank()) return Intent.EMPTY_INTENT
+        if (command.isBlank()) return Intent.EMPTY_INTENT
 
         val parts = commandPattern.matchEntire(command)?.takeIf {
             it.groupValues.size > 1
@@ -63,7 +63,8 @@ object MicroRpc {
                     isList = true
                 }
                 ']' -> throw MicroRpcTokenizeException("unexpected_quote", command)
-                ' ' -> { /* Do nothing just skip */ }
+                ' ' -> { /* Do nothing just skip */
+                }
                 else -> sb.append(c)
             }
             index++
@@ -104,7 +105,7 @@ object MicroRpc {
 
     val IntentNamePattern = Regex("^[A-Za-z0-9_.]+$")
 
-    operator fun invoke(name : String, block: (CommandBuildContext.() -> Unit)? = null) = newIntent(name, block)
+    operator fun invoke(name: String, block: (CommandBuildContext.() -> Unit)? = null) = newIntent(name, block)
 
     fun newIntent(name: String, block: (CommandBuildContext.() -> Unit)? = null) = CommandBuildContext(name.takeIf {
         it.matches(IntentNamePattern)

@@ -42,7 +42,7 @@ object JavaDocFileHandler : FileHandler {
                         continue
                     }
 
-                    lines.add(line.trim().removePrefix("*"))
+                    lines.add(line.trim().removePrefix("*").trim())
                     continue
                 }
                 val matched = startPattern.matchEntire(line) ?: continue

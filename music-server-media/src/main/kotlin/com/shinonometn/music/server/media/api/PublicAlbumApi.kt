@@ -26,7 +26,7 @@ class PublicAlbumApi(private val service: MetaManagementService) {
          * ## Returns
          * @bean(Page) of @bean(AlbumData.Bean)
          * ```
-         * {..., content: [{ album : { @bean(AlbumData.Bean) } }]}
+         * {..., content: [{ album : @bean(AlbumData.Bean) }]}
          * ```
          */
         get {
@@ -44,7 +44,7 @@ class PublicAlbumApi(private val service: MetaManagementService) {
              * ## Returns
              * @bean(AlbumData.Bean)
              * ```
-             * { album : { @bean(AlbumData.Bean) } }
+             * { album : @bean(AlbumData.Bean) }
              * ```
              */
             get {
@@ -61,7 +61,7 @@ class PublicAlbumApi(private val service: MetaManagementService) {
              * ## Returns
              * List of @bean(TrackData.Bean)
              * ```
-             * [ { track: { @bean(TrackData.Bean) } } ]
+             * [ { track: @bean(TrackData.Bean) } ]
              * ```
              */
             route("/track") {

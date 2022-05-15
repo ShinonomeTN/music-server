@@ -70,6 +70,12 @@ subprojects {
         testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
     }
 
+    musicServerDocument {
+        javaDoc {
+            it.scan("src/main/kotlin")
+        }
+    }
+
     compileKotlin { kotlinOptions.jvmTarget = java_version }
     compileTestKotlin { kotlinOptions.jvmTarget = java_version }
 
