@@ -18,7 +18,7 @@ class MusicServerDocumentPlugin : Plugin<Project> {
 
             if (config.scannerTasks.isEmpty()) {
                 logger.warn(
-                    "No target for scan. " +
+                    "No target to scan in ${project.name}. " +
                             "use `musicServerDocument { }` dsl to configure this plugin."
                 )
                 return@register
