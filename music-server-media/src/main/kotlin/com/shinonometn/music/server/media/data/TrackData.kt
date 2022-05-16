@@ -9,10 +9,7 @@ import com.shinonometn.music.server.commons.transformJsonNode
 import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
-import org.jetbrains.exposed.sql.SortOrder
-import org.jetbrains.exposed.sql.deleteWhere
-import org.jetbrains.exposed.sql.select
-import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.sql.*
 
 /*
 * Tracks in Album
@@ -36,6 +33,10 @@ object TrackData {
 
     fun deleteById(id: Long): Int {
         return Table.deleteWhere { Table.id eq id }
+    }
+
+    fun removeAlbumRelation(id : Long) : Int {
+        return Table.update({ Table.colAlbumId eq id }) { it[colAlbumId] = null }
     }
 
     object Table : LongIdMetaDataTable("tb_track_data") {

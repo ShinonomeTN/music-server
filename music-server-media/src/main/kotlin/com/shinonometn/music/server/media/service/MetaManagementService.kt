@@ -194,7 +194,9 @@ class MetaManagementService(private val database: SqlDatabase) {
     }
 
     fun deleteAlbum(id: Long) : Int = database {
-        AlbumArtCoverData.removeAllRelationsByAlbumId(id) + AlbumData.deleteById(id)
+        AlbumArtCoverData.removeAllRelationsByAlbumId(id) +
+                TrackData.removeAlbumRelation(id) +
+                AlbumData.deleteById(id)
     }
 
     fun deleteArtist(id: Long): Int = TrackArtistData.deleteByArtistId(id) +
