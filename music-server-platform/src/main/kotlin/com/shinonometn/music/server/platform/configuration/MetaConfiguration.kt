@@ -22,6 +22,18 @@ open class MetaConfiguration(private val deployConfig : DeploymentConfiguration)
     var allowGuestRecordingAccess : Boolean = true
         private set
 
+    @Value("\${application.name:}")
+    var name : String = ""
+        private set
+
+    @Value("\${application.description:}")
+    var description : String = ""
+        private set
+
+    @Value("\${application.greeting:}")
+    var greeting : String = ""
+        private set
+
     private val commonPorts = listOf(80, 443)
     fun resolveHostName() : String {
         return when {
