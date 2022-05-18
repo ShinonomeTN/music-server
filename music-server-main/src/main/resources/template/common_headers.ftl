@@ -9,7 +9,7 @@
 <style>
     body {
         /* background: darkorange; */
-        background: #FFF;
+        background: var(--ms-base-color, #FFF);
     }
 
     .msc-card {
@@ -55,12 +55,12 @@
 
     .ani-fade-up-enter-active {
         position: relative;
-        animation: fadeInDown 0.3s;
+        animation: fadeInRight 0.3s;
     }
 
     .ani-fade-up-leave-active {
         position: relative;
-        animation: fadeOutDown 0.3s
+        animation: fadeOutLeft 0.3s
     }
 
     .data-late-show {

@@ -6,7 +6,7 @@ import com.shinonometn.koemans.getEnvironmentHoconConfig
 import com.shinonometn.koemans.spring.propertySourcePlaceholderSupport
 import com.shinonometn.koemans.spring.useHoconPropertySource
 import com.shinonometn.koemans.web.spring.configuration.configureBySpring
-import com.shinonometn.music.server.configuration.ApplicationAutoConfiguration
+import com.shinonometn.music.server.platform.configuration.PlatformAutoConfiguration
 import io.ktor.application.*
 import org.slf4j.LoggerFactory
 
@@ -19,7 +19,7 @@ fun main(args: Array<String>) {
 fun Application.musicServerMainModule() {
     val hocon = getEnvironmentHoconConfig()
     configureBySpring {
-        annotationDriven(ApplicationAutoConfiguration::class.java) {
+        annotationDriven(PlatformAutoConfiguration::class.java) {
             propertySourcePlaceholderSupport()
             hocon?.let { useHoconPropertySource("ktor", it) }
         }

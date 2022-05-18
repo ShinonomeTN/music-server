@@ -14,9 +14,11 @@ import io.ktor.features.*
 import io.ktor.jackson.*
 import io.ktor.response.*
 import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 
 @Configuration
+@ComponentScan("com.shinonometn.music.server")
 open class PlatformAutoConfiguration {
 
     @KtorConfiguration
