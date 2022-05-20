@@ -2,7 +2,6 @@ package com.shinonometn.music.server.platform.configuration
 
 import com.shinonometn.koemans.web.spring.route.KtorRoute
 import com.shinonometn.music.server.commons.Jackson
-import com.shinonometn.music.server.platform.security.commons.scopeDescriptions
 import com.shinonometn.music.server.platform.security.service.SecurityService
 import io.ktor.application.*
 import io.ktor.http.*
@@ -13,7 +12,7 @@ import org.springframework.stereotype.Controller
 
 @Controller
 class ServerSettingApi(
-    private val metaConfig : MetaConfiguration,
+    private val metaConfig: MetaConfiguration,
     securityService: SecurityService
 ) {
     private val scopeDescriptions = securityService.normalScopes.associate { it.scope to it.descriptions }
@@ -37,17 +36,17 @@ class ServerSettingApi(
      */
     @KtorRoute("/.music_server.json")
     fun Route.serverSettings() = get {
-        call.respond(mapOf(
-            "host" to metaConfig.resolveHostName(),
-            "protocol" to metaConfig.protocol,
-            "allowGuest" to metaConfig.allowGuest,
-            "allowGuestRecordingAccess" to metaConfig.allowGuestRecordingAccess,
-            "apiScopes" to scopeDescriptions,
-            "apiVersion" to "1.0",
-            "name" to metaConfig.name.takeIf { it.isNotBlank() },
-            "description" to metaConfig.description.takeIf { it.isNotBlank() },
-            "greeting" to metaConfig.greeting.takeIf { it.isNotBlank() },
-        ))
+        call.respond(Jackson{
+            "host" to metaConfig.resolveHostName()
+            "protocol" to metaConfig.protocol
+            "allowGuest" to metaConfig.allowGuest
+            "allowGuestRecordingAccess" to metaConfig.allowGuestRecordingAccess
+            "apiScopes" to scopeDescriptions
+            "apiVersion" to "1.0"
+            "name" to metaConfig.name.takeIf { it.isNotBlank() }
+            "description" to metaConfig.description.takeIf { it.isNotBlank() }
+            "greeting" to metaConfig.greeting.takeIf { it.isNotBlank() }
+        })
     }
 
     @KtorRoute("/favicon.ico")
