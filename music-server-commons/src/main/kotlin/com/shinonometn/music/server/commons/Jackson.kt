@@ -33,8 +33,12 @@ object Jackson {
     class JsonBuilderContext(private val mapper: ObjectMapper = Jackson.mapper) {
         private val node: ObjectNode = mapper.createObjectNode()
 
-        infix fun String.to(value: Any) {
-            node.putPOJO(this, value)
+        infix fun String.to(value: Any?) {
+            if (value == null) {
+                node.putNull(this)
+            } else {
+                node.putPOJO(this, value)
+            }
         }
 
         infix fun String.to(value : String) {
