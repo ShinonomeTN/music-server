@@ -25,7 +25,7 @@ import org.springframework.stereotype.Controller
 
 @Controller
 @KtorRoute("/api/playlist")
-class PlaylistApi(private val playlistService: PlaylistService, private val userService: UserService) {
+class UserPlaylistApi(private val playlistService: PlaylistService, private val userService: UserService) {
 
     @KtorRoute
     fun Route.listPlaylists() = accessControl(MediaScope.PlayListRead) {

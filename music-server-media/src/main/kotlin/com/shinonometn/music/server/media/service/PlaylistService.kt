@@ -114,4 +114,8 @@ class PlaylistService(private val database: SqlDatabase) {
     fun isUserOwnPlaylist(userId: Long, playlistId: Long) = database {
         PlaylistData.isUserOwnPlaylist(userId, playlistId)
     }
+
+    fun findAllPublicPlaylist(paging: PageRequest, sorting: SortRequest) = database {
+        PlaylistData.findAllPublic(paging, sorting)
+    }
 }

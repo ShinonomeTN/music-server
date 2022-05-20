@@ -1,9 +1,6 @@
 package com.shinonometn.music.server.media.data
 
-import com.shinonometn.koemans.exposed.Page
-import com.shinonometn.koemans.exposed.PageRequest
-import com.shinonometn.koemans.exposed.countBy
-import com.shinonometn.koemans.exposed.pagingBy
+import com.shinonometn.koemans.exposed.*
 import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
@@ -46,6 +43,12 @@ object PlaylistData {
         return Table.countBy(Table.id) { Table.colCreatorId eq userId and (Table.id eq id) } > 0
     }
 
+    fun findAllPublic(paging: PageRequest, sorting: SortRequest): Page<Bean> {
+        return Table.select { Table.colIsPrivate eq false }.orderBy(sorting).pagingBy(paging) {
+            Bean(Entity.wrapRow(it))
+        }
+    }
+
     object Table : LongIdTable("tb_playlist") {
         val colCreatorId = long("creator_id")
         val colIsPrivate = bool("is_private")
@@ -53,6 +56,7 @@ object PlaylistData {
         val colDescription = text("description").default("")
         val colCoverArtId = reference("cover_art_id", CoverArtData.Table.id).nullable()
         val colCreatedAt = datetime("created_at").clientDefault { LocalDateTime.now() }
+        val colUpdateAt = datetime("update_at").clientDefault { LocalDateTime.now() }
     }
 
     class Entity(id: EntityID<Long>) : LongEntity(id) {
@@ -71,6 +75,7 @@ object PlaylistData {
         var coverArtId by Table.colCoverArtId
         var coverArt by CoverArtData.Entity optionalReferencedOn Table.colCoverArtId
         var createdAt by Table.colCreatedAt
+        var updateAt by Table.colUpdateAt
     }
 
     class Bean(entity: Entity) {
@@ -82,5 +87,6 @@ object PlaylistData {
         val coverArtId = entity.coverArtId?.value
         val coverArt = entity.coverArt?.let { CoverArtData.Bean(it) }
         val createdAt = entity.createdAt
+        val updateAt = entity.updateAt
     }
 }
