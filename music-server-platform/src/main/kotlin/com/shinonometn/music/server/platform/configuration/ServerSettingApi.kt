@@ -37,17 +37,17 @@ class ServerSettingApi(
      */
     @KtorRoute("/.music_server.json")
     fun Route.serverSettings() = get {
-        call.respond(Jackson {
-            "host" to metaConfig.resolveHostName()
-            "protocol" to metaConfig.protocol
-            "allowGuest" to metaConfig.allowGuest
-            "allowGuestRecordingAccess" to metaConfig.allowGuestRecordingAccess
-            "apiScopes" to scopeDescriptions
-            "apiVersion" to "1.0"
-            "name" to metaConfig.name.takeIf { it.isNotBlank() }
-            "description" to metaConfig.description.takeIf { it.isNotBlank() }
-            "greeting" to metaConfig.greeting.takeIf { it.isNotBlank() }
-        })
+        call.respond(mapOf(
+            "host" to metaConfig.resolveHostName(),
+            "protocol" to metaConfig.protocol,
+            "allowGuest" to metaConfig.allowGuest,
+            "allowGuestRecordingAccess" to metaConfig.allowGuestRecordingAccess,
+            "apiScopes" to scopeDescriptions,
+            "apiVersion" to "1.0",
+            "name" to metaConfig.name.takeIf { it.isNotBlank() },
+            "description" to metaConfig.description.takeIf { it.isNotBlank() },
+            "greeting" to metaConfig.greeting.takeIf { it.isNotBlank() },
+        ))
     }
 
     @KtorRoute("/favicon.ico")
