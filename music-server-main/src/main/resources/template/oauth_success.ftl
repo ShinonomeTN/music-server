@@ -15,7 +15,10 @@
 
                 <div class="mt-5">If the application does not respond, click the button below to retry.</div>
             </div>
-            <button class="btn btn-outline-dark" @click="refresh">Retry</button>
+            <div class="d-grid gap-3 pt-3">
+                <button class="btn btn-outline-dark" @click="refresh">Retry</button>
+                <button class="btn btn-outline-secondary" @click="close">Retry</button>
+            </div>
         </div>
     </div>
 </div>
@@ -27,6 +30,9 @@
     methods: {
       refresh() {
         location.reload()
+      },
+      close() {
+        window.close()
       }
     }
   })
