@@ -63,7 +63,7 @@ subprojects {
         // https://mvnrepository.com/artifact/javax.annotation/javax.annotation-api
         implementation group: 'javax.annotation', name: 'javax.annotation-api', version: '1.3.2'
 
-        implementation "com.shinonometn:ktor-server-access-control:1.1-SNAPSHOT"
+        implementation "com.shinonometn:ktor-server-access-control:1.1"
         implementation group: 'org.mindrot', name: 'jbcrypt', version:'0.4'
 
         testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
