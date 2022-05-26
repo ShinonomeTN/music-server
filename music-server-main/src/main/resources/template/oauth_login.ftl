@@ -56,7 +56,10 @@
                     </div>
                 </div>
             </div>
-            <button type="submit" :disabled="buttonDisabled" style="width: 100%" class="btn btn-primary">Submit</button>
+            <div class="d-grid gap-3 pt-3">
+                <button type="submit" :disabled="buttonDisabled" class="btn btn-primary">Submit</button>
+                <button v-if="isNative" class="btn btn-secondary" @click="closeWindow">Cancel</button>
+            </div>
         </form>
     </div>
 </script>
@@ -114,6 +117,9 @@
               }
             }
             formItem.error = null
+          },
+          closeWindow() {
+            window.close()
           }
         },
         computed: {
@@ -130,6 +136,9 @@
             }
             params.append("redirect", redirect)
             return "/api/auth?" + params.toString()
+          },
+          isNative() {
+            return !!(window.$native)
           }
         }
       },
