@@ -17,7 +17,7 @@
             </div>
             <div class="d-grid gap-3 pt-3">
                 <button class="btn btn-outline-dark" @click="refresh">Retry</button>
-                <button class="btn btn-outline-secondary" @click="close">Retry</button>
+                <button class="btn btn-outline-secondary" @click="close">Close Window</button>
             </div>
         </div>
     </div>

@@ -208,8 +208,8 @@ class OAuthApi(
                 val stringToken = appToken.sign(config.appTokenSalt)
 
                 val redirect = tempSession.redirect
-                if (redirect != "internal") return@post call.respondRedirect("$redirect?state=success&token=${stringToken}&from=com.shinonometn.music.server")
-                call.respondRedirect("/api/auth?state=success&token=${stringToken}&from=com.shinonometn.music.server")
+                if (redirect != "internal") return@post call.respondRedirect("$redirect?state=success&token=${stringToken}&from=com.shinonometn.music.server", permanent = false)
+                call.respondRedirect("/api/auth?state=success&token=${stringToken}&from=com.shinonometn.music.server", permanent = false)
             }
         }
 
