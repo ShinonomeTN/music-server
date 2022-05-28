@@ -6,7 +6,7 @@ import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
 import org.jetbrains.exposed.sql.deleteWhere
 
-object TrackArtistData {
+object TrackArtistRelation {
     fun deleteByArtistId(id: Long): Int {
         return Table.deleteWhere { Table.colArtist eq id }
     }

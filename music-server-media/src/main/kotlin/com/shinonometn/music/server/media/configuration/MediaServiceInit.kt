@@ -11,16 +11,16 @@ class MediaServiceInit(private val database: SqlDatabase) : PlatformInitAction()
     override fun init() {
         database {
             SchemaUtils.createMissingTablesAndColumns(
-                AlbumArtCoverData.Table,
-                AlbumArtistData.Table,
+                AlbumArtCoverRelation.Table,
+                AlbumArtistRelation.Table,
                 AlbumData.Table,
-                ArtistCoverArtData.Table,
+                ArtistCoverArtRelation.Table,
                 ArtistData.Table,
                 CoverArtData.Table,
                 PlaylistData.Table,
                 PlaylistItemData.Table,
                 RecordingData.Table,
-                TrackArtistData.Table,
+                TrackArtistRelation.Table,
                 TrackData.Table
             )
         }

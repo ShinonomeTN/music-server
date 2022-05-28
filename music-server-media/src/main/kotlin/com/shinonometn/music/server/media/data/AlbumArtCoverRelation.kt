@@ -7,7 +7,7 @@ import org.jetbrains.exposed.dao.id.LongIdTable
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
 
-object AlbumArtCoverData {
+object AlbumArtCoverRelation {
     fun createRelation(albumId: Long, coverArtId: Long) {
         Table.insert {
             it[this.colAlbumId] = albumId
@@ -28,7 +28,7 @@ object AlbumArtCoverData {
         val colCoverArtId = reference("art_cover_id", CoverArtData.Table).index()
     }
 
-    class Entity(id : EntityID<Long>) : LongEntity(id) {
+    class Entity(id: EntityID<Long>) : LongEntity(id) {
         companion object : LongEntityClass<Entity>(Table)
 
         var album by AlbumData.Entity referencedOn Table.colAlbumId

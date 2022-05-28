@@ -35,7 +35,7 @@ class MetaManagementService(private val database: SqlDatabase) {
             }
 
             artistIds.forEach { artistId ->
-                TrackArtistData.Table.insert {
+                TrackArtistRelation.Table.insert {
                     it[colTrack] = entity.id
                     it[colArtist] = EntityID(artistId, ArtistData.Table)
                 }
@@ -58,8 +58,8 @@ class MetaManagementService(private val database: SqlDatabase) {
             entity.trackNumber = trackNumber
 
             artistIds.forEach { artistId ->
-                TrackArtistData.Table.deleteWhere { TrackArtistData.Table.colArtist eq artistId }
-                TrackArtistData.Table.insert {
+                TrackArtistRelation.Table.deleteWhere { TrackArtistRelation.Table.colArtist eq artistId }
+                TrackArtistRelation.Table.insert {
                     it[colTrack] = entity.id
                     it[colArtist] = EntityID(artistId, ArtistData.Table)
                 }
@@ -108,11 +108,11 @@ class MetaManagementService(private val database: SqlDatabase) {
         })
 
         albumArtIds.forEach {
-            AlbumArtCoverData.createRelation(bean.id, it)
+            AlbumArtCoverRelation.createRelation(bean.id, it)
         }
 
         albumArtistIds.forEach {
-            AlbumArtistData.createRelation(bean.id, it)
+            AlbumArtistRelation.createRelation(bean.id, it)
         }
 
         bean
@@ -122,11 +122,11 @@ class MetaManagementService(private val database: SqlDatabase) {
         val entity = AlbumData.Entity.findById(id) ?: return@database null
         entity.name = title
 
-        AlbumArtCoverData.removeAllRelationsByAlbumId(id)
-        AlbumArtistData.removeAllRelationsByAlbumId(id)
+        AlbumArtCoverRelation.removeAllRelationsByAlbumId(id)
+        AlbumArtistRelation.removeAllRelationsByAlbumId(id)
 
-        albumArtIds.forEach { AlbumArtCoverData.createRelation(id, it) }
-        albumArtistIds.forEach { AlbumArtistData.createRelation(id, it) }
+        albumArtIds.forEach { AlbumArtCoverRelation.createRelation(id, it) }
+        albumArtistIds.forEach { AlbumArtistRelation.createRelation(id, it) }
 
         AlbumData.Bean(entity)
     }
@@ -151,7 +151,7 @@ class MetaManagementService(private val database: SqlDatabase) {
                 this.name = name
             })
 
-            coverArtIds.forEach { coverArtId -> ArtistCoverArtData.createRelation(bean.id, coverArtId) }
+            coverArtIds.forEach { coverArtId -> ArtistCoverArtRelation.createRelation(bean.id, coverArtId) }
 
             bean
         }
@@ -162,8 +162,8 @@ class MetaManagementService(private val database: SqlDatabase) {
             val entity = ArtistData.Entity.findById(id) ?: return@database null
             entity.name = name
 
-            ArtistCoverArtData.removeAllRelationsByArtistId(id)
-            coverArtIds.forEach { coverArtId -> ArtistCoverArtData.createRelation(id, coverArtId) }
+            ArtistCoverArtRelation.removeAllRelationsByArtistId(id)
+            coverArtIds.forEach { coverArtId -> ArtistCoverArtRelation.createRelation(id, coverArtId) }
 
             ArtistData.Bean(entity)
         }
@@ -186,26 +186,26 @@ class MetaManagementService(private val database: SqlDatabase) {
     @EventListener(CoverArtDeleteEvent::class)
     fun onCoverArtDelete(event: CoverArtDeleteEvent) {
         database {
-            val clearedAlbumCover = AlbumArtCoverData.removeAllRelationsByCoverId(event.id)
+            val clearedAlbumCover = AlbumArtCoverRelation.removeAllRelationsByCoverId(event.id)
             logger.info("Clear {} album cover associated to {}.", clearedAlbumCover, event.id)
-            val clearedArtistCover = ArtistCoverArtData.removeAllRelationsByCoverId(event.id)
+            val clearedArtistCover = ArtistCoverArtRelation.removeAllRelationsByCoverId(event.id)
             logger.info("Clear {} artist cover associated to {}.", clearedArtistCover, event.id)
         }
     }
 
     fun deleteAlbum(id: Long) : Int = database {
-        AlbumArtCoverData.removeAllRelationsByAlbumId(id) +
+        AlbumArtCoverRelation.removeAllRelationsByAlbumId(id) +
                 TrackData.removeAlbumRelation(id) +
                 AlbumData.deleteById(id)
     }
 
-    fun deleteArtist(id: Long): Int = TrackArtistData.deleteByArtistId(id) +
-            ArtistCoverArtData.removeAllRelationsByArtistId(id) +
+    fun deleteArtist(id: Long): Int = TrackArtistRelation.deleteByArtistId(id) +
+            ArtistCoverArtRelation.removeAllRelationsByArtistId(id) +
             ArtistData.deleteById(id)
 
     fun deleteTrack(id: Long): Int = database {
          RecordingData.deleteByTrackId(id) +
-                 TrackArtistData.deleteRelationshipsByTrackId(id) +
+                 TrackArtistRelation.deleteRelationshipsByTrackId(id) +
                  TrackData.deleteById(id)
     }
 

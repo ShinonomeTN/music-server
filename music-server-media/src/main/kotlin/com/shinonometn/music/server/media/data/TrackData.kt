@@ -10,6 +10,8 @@ import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.javatime.datetime
+import java.time.LocalDateTime
 
 /*
 * Tracks in Album
@@ -44,6 +46,7 @@ object TrackData {
         val colTitle = varchar("title", 255)
         val colDiskNumber = integer("disk_number").nullable()
         val colTrackNumber = integer("track_number").nullable()
+        val colCreateDate = datetime("create_date").clientDefault { LocalDateTime.now() }
     }
 
     class Entity(id: EntityID<Long>) : LongEntity(id) {
@@ -51,7 +54,7 @@ object TrackData {
 
         var title by Table.colTitle
 
-        val artists by ArtistData.Entity via TrackArtistData.Table
+        val artists by ArtistData.Entity via TrackArtistRelation.Table
 
         var diskNumber by Table.colDiskNumber
         var trackNumber by Table.colTrackNumber
@@ -62,6 +65,8 @@ object TrackData {
         val recordings by RecordingData.Entity referrersOn RecordingData.Table.colTrackId
 
         var metaData: JsonNode by Table.colMetaData.transformJsonNode()
+
+        val createDate by Table.colCreateDate
     }
 
     class Bean(entity: Entity) {
@@ -88,5 +93,7 @@ object TrackData {
         }
 
         val metaData = entity.metaData
+
+        val createDate = entity.createDate
     }
 }

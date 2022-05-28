@@ -11,7 +11,9 @@ import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.sql.deleteWhere
+import org.jetbrains.exposed.sql.javatime.datetime
 import org.jetbrains.exposed.sql.selectAll
+import java.time.LocalDateTime
 
 object ArtistData {
     fun findAll(paging: PageRequest): Page<Bean> {
@@ -38,14 +40,16 @@ object ArtistData {
 
     object Table : LongIdMetaDataTable("tb_artist_data") {
         val colName = varchar("name", 255)
+        val colCreateDate = datetime("create_date").clientDefault { LocalDateTime.now() }
     }
 
     class Entity(id : EntityID<Long>) : LongEntity(id) {
         companion object : LongEntityClass<Entity>(Table)
 
         var name by Table.colName
-        var coverArts by CoverArtData.Entity via ArtistCoverArtData.Table
+        var coverArts by CoverArtData.Entity via ArtistCoverArtRelation.Table
         var metaData: JsonNode by Table.colMetaData.transformJsonNode()
+        val createDate by Table.colCreateDate
     }
 
     class Bean(entity : Entity) {
@@ -53,5 +57,6 @@ object ArtistData {
         val name = entity.name
         val coverArts = entity.coverArts.map { CoverArtData.Bean(it) }
         val metaData = entity.metaData
+        val createDate = entity.createDate
     }
 }

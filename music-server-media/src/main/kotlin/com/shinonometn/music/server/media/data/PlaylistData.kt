@@ -74,7 +74,7 @@ object PlaylistData {
         var description by Table.colDescription
         var coverArtId by Table.colCoverArtId
         var coverArt by CoverArtData.Entity optionalReferencedOn Table.colCoverArtId
-        var createdAt by Table.colCreatedAt
+        val createdAt by Table.colCreatedAt
         var updateAt by Table.colUpdateAt
     }
 

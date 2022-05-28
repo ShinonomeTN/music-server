@@ -4,7 +4,7 @@ import org.jetbrains.exposed.dao.id.LongIdTable
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
 
-object ArtistCoverArtData {
+object ArtistCoverArtRelation {
     object Table : LongIdTable("tb_artist_art_cover") {
         val colArtistId = reference("artist_id", ArtistData.Table).index()
         val colCoverId = reference("cover_id", CoverArtData.Table).index()

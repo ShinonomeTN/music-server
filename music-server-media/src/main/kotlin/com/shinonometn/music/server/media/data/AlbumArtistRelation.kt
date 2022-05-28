@@ -7,7 +7,7 @@ import org.jetbrains.exposed.dao.id.LongIdTable
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
 
-object AlbumArtistData {
+object AlbumArtistRelation {
     fun createRelation(albumId: Long, artistId: Long) {
         Table.insert {
             it[this.colAlbumId] = albumId
