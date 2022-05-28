@@ -12,7 +12,6 @@ import org.slf4j.LoggerFactory
 
 fun main(args: Array<String>) {
     (LoggerFactory.getLogger("ROOT") as Logger).level = Level.INFO
-    (LoggerFactory.getLogger("Exposed") as Logger).level = Level.DEBUG
     io.ktor.server.netty.EngineMain.main(args)
 }
 
