@@ -5,6 +5,7 @@ import com.shinonometn.koemans.web.spring.route.KtorRoute
 import com.shinonometn.ktor.server.access.control.accessControl
 import com.shinonometn.music.server.commons.respondPair
 import com.shinonometn.music.server.commons.respondSuccessOrFailed
+import com.shinonometn.music.server.platform.configuration.MetaConfiguration
 import com.shinonometn.music.server.platform.security.PlatformScope
 import com.shinonometn.music.server.platform.security.commons.*
 import com.shinonometn.music.server.platform.security.configuration.SecurityServiceConfiguration
@@ -20,7 +21,8 @@ import org.springframework.stereotype.Controller
 @KtorRoute("/api/auth")
 class LoginApi(
     private val userService: UserService,
-    private val config: SecurityServiceConfiguration
+    private val config: SecurityServiceConfiguration,
+    private val meta : MetaConfiguration
 ) {
     @KtorRoute("/login")
     fun Route.userInfo() = accessControl(PlatformScope.UserInfo) {
@@ -56,21 +58,13 @@ class LoginApi(
         val request = LoginRequest(call.receiveParameters())
 
         val user = userService.login(request.username, request.password) ?: error("invalid_username_or_password_or_user_disabled")
-
-        val session = UserSession(
-            generateNonce() + generateNonce(),
-            user.id,
-            config.sessionTimeoutTimestamp
-        )
+        val session = UserSession(generateNonce() + generateNonce(), user.id, config.sessionTimeoutTimestamp)
         val signedSession = session.sign(config.sessionSalt)
 
-        userService.registerSession(
-            session,
-            call.request.origin.remoteHost,
-            call.request.userAgent() ?: ""
-        )
+        userService.registerSession(session, call.request.origin.remoteHost, call.request.userAgent() ?: "")
 
         call.response.cookies.append("session", signedSession, maxAge = config.sessionTimeoutSeconds, path = "/")
+        call.response.cookies.appendSession(signedSession, config.sessionTimeoutSeconds, meta.protocol == "https")
         call.respondPair("session" to session)
     }
 
