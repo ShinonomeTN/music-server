@@ -8,7 +8,9 @@ import com.shinonometn.koemans.web.spring.route.KtorRoute
 import com.shinonometn.ktor.server.access.control.accessControl
 import com.shinonometn.music.server.commons.businessError
 import com.shinonometn.music.server.media.data.AlbumData
+import com.shinonometn.music.server.media.service.AlbumService
 import com.shinonometn.music.server.media.service.MetaManagementService
+import com.shinonometn.music.server.media.service.TrackService
 import com.shinonometn.music.server.platform.security.commons.AC
 import io.ktor.application.*
 import io.ktor.response.*
@@ -17,7 +19,7 @@ import org.springframework.stereotype.Controller
 
 @Controller
 @KtorRoute("/api/meta/album")
-class PublicAlbumApi(private val service: MetaManagementService) {
+class PublicAlbumApi(private val trackService: TrackService, private val albumService: AlbumService) {
 
     @KtorRoute
     fun Route.albumApi() = accessControl(AC.Guest) {
@@ -41,7 +43,7 @@ class PublicAlbumApi(private val service: MetaManagementService) {
         get {
             val paging = call.receivePageRequest()
             val sorting = call.receiveSortOptions(albumSorting)
-            val result = background { service.findAllAlbums(paging, sorting).convert { mapOf("album" to it) } }
+            val result = background { albumService.findAllAlbums(paging, sorting).convert { mapOf("album" to it) } }
             call.respond(result)
         }
 
@@ -59,7 +61,7 @@ class PublicAlbumApi(private val service: MetaManagementService) {
              */
             get {
                 val id = call.parameters["id"]?.toLongOrNull() ?: businessError("id_should_be_number")
-                val result = background { service.getAlbumById(id) }
+                val result = background { albumService.getAlbumById(id) }
                 call.respond(mapOf("album" to result))
             }
 
@@ -78,7 +80,7 @@ class PublicAlbumApi(private val service: MetaManagementService) {
             route("/track") {
                 get {
                     val id = call.parameters["id"]?.toLongOrNull() ?: businessError("id_should_be_number")
-                    val result = background { service.findTracksByAlbumId(id).map { mapOf("track" to it) } }
+                    val result = background { trackService.findTracksByAlbumId(id).map { mapOf("track" to it) } }
                     call.respond(result)
                 }
             }

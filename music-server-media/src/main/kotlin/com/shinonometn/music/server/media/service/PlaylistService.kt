@@ -5,10 +5,7 @@ import com.shinonometn.koemans.exposed.Page
 import com.shinonometn.koemans.exposed.PageRequest
 import com.shinonometn.koemans.exposed.SortRequest
 import com.shinonometn.koemans.exposed.database.SqlDatabase
-import com.shinonometn.music.server.media.data.CoverArtData
-import com.shinonometn.music.server.media.data.PlaylistData
-import com.shinonometn.music.server.media.data.PlaylistItemData
-import com.shinonometn.music.server.media.data.TrackData
+import com.shinonometn.music.server.media.data.*
 import com.shinonometn.music.server.media.event.CoverArtDeleteEvent
 import org.jetbrains.exposed.dao.id.EntityID
 import org.slf4j.LoggerFactory
@@ -96,14 +93,6 @@ class PlaylistService(private val database: SqlDatabase) {
         PlaylistItemData.findAll(playlistId, paging, sorting)
     }
 
-    @EventListener(CoverArtDeleteEvent::class)
-    fun onCoverArtDelete(event: CoverArtDeleteEvent) {
-        database {
-            val clearedPlaylistCover = PlaylistData.removeCoverById(event.id)
-            logger.info("Clear {} playlist cover associated to {}.", clearedPlaylistCover, event.id)
-        }
-    }
-
     fun findAllByUserId(userId: Long, paging: PageRequest) = database {
         PlaylistData.findAllByUserId(userId, paging)
     }
@@ -119,6 +108,17 @@ class PlaylistService(private val database: SqlDatabase) {
     fun findAllPublicPlaylist(paging: PageRequest, filtering: FilterRequest, sorting: SortRequest): Page<PlaylistData.Bean> {
         return database {
             PlaylistData.findAllPublic(paging, filtering, sorting)
+        }
+    }
+
+    //
+    // Event handling
+    //
+    @EventListener(CoverArtDeleteEvent::class)
+    fun onCoverArtDelete(event: CoverArtDeleteEvent) {
+        database {
+            val clearedPlaylistCover = PlaylistData.removeCoverById(event.id)
+            logger.info("Clear {} playlist cover associated to {}.", clearedPlaylistCover, event.id)
         }
     }
 }

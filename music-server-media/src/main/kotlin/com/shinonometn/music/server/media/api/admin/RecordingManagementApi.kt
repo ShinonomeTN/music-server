@@ -7,7 +7,7 @@ import com.shinonometn.music.server.commons.CR
 import com.shinonometn.music.server.commons.businessError
 import com.shinonometn.music.server.media.MediaScope
 import com.shinonometn.music.server.media.service.MetaManagementService
-import com.shinonometn.music.server.platform.security.commons.AC
+import com.shinonometn.music.server.media.service.RecordingService
 import com.shinonometn.music.server.platform.security.commons.accessControl
 import io.ktor.application.*
 import io.ktor.http.*
@@ -18,7 +18,7 @@ import org.springframework.stereotype.Controller
 
 @Controller
 @KtorRoute("/api/meta")
-class RecordingManagementApi(private val service: MetaManagementService) {
+class RecordingManagementApi(private val recordingService: RecordingService) {
 
     /* Recording */
     class CreateRecordingRequest(parameters: Parameters) {
@@ -45,7 +45,7 @@ class RecordingManagementApi(private val service: MetaManagementService) {
             post {
                 val id = call.parameters["id"]?.toLongOrNull() ?: businessError("id_should_be_number")
                 val request = CreateRecordingRequest(call.receiveParameters())
-                val result = background { service.addTrackRecording(id, request.protocol, request.server, request.location) }
+                val result = background { recordingService.addTrackRecording(id, request.protocol, request.server, request.location) }
                 call.respond(mapOf("recording" to result))
             }
         }
@@ -57,13 +57,13 @@ class RecordingManagementApi(private val service: MetaManagementService) {
             post {
                 val id = call.parameters["id"]?.toLongOrNull() ?: businessError("id_should_be_number")
                 val request = CreateRecordingRequest(call.receiveParameters())
-                val result = background { service.updateTrackRecording(id, request.protocol, request.server, request.location) }
+                val result = background { recordingService.updateTrackRecording(id, request.protocol, request.server, request.location) }
                 call.respond(mapOf("recording" to result))
             }
 
             delete {
                 val recordingId = call.parameters["recordingId"]?.toLongOrNull() ?: businessError("recordingId_should_be_number")
-                val result = background { service.deleteTrackRecording(recordingId) }
+                val result = background { recordingService.deleteTrackRecording(recordingId) }
                 call.respond(CR.successOrFailed(result))
             }
         }

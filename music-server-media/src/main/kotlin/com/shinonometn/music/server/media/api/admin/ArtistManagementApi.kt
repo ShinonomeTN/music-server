@@ -8,8 +8,7 @@ import com.shinonometn.music.server.commons.CR
 import com.shinonometn.music.server.commons.businessError
 import com.shinonometn.music.server.commons.vararg
 import com.shinonometn.music.server.media.MediaScope
-import com.shinonometn.music.server.media.service.MetaManagementService
-import com.shinonometn.music.server.platform.security.commons.AC
+import com.shinonometn.music.server.media.service.ArtistService
 import com.shinonometn.music.server.platform.security.commons.accessControl
 import io.ktor.application.*
 import io.ktor.http.*
@@ -20,7 +19,7 @@ import org.springframework.stereotype.Controller
 
 @Controller
 @KtorRoute("/api/meta/artist")
-class ArtistManagementApi(private val service: MetaManagementService) {
+class ArtistManagementApi(private val artistService: ArtistService) {
     /* Artist */
 
     class CreateArtistRequest(params: Parameters) {
@@ -47,7 +46,7 @@ class ArtistManagementApi(private val service: MetaManagementService) {
     fun Route.artistApis() = accessControl(MediaScope.Admin.ArtistManagement) {
         post {
             val request = CreateArtistRequest(call.receiveParameters())
-            val artist = background { service.createArtist(request.name, request.coverArtIds) }
+            val artist = background { artistService.createArtist(request.name, request.coverArtIds) }
             call.respond(mapOf("artist" to artist))
         }
 
@@ -55,13 +54,13 @@ class ArtistManagementApi(private val service: MetaManagementService) {
             post {
                 val id = call.parameters["id"]?.toLongOrNull() ?: businessError("id_should_be_number")
                 val request = CreateArtistRequest(call.receiveParameters())
-                val artist = background { service.updateArtist(id, request.name, request.coverArtIds) }
+                val artist = background { artistService.updateArtist(id, request.name, request.coverArtIds) }
                 call.respond(mapOf("artist" to artist))
             }
 
             delete {
                 val id = call.parameters["id"]?.toLongOrNull() ?: businessError("id_should_be_number")
-                val result = background { service.deleteArtist(id) } > 0
+                val result = background { artistService.deleteArtistById(id) } > 0
                 call.respond(CR.successOrFailed(result))
             }
         }

@@ -8,8 +8,7 @@ import com.shinonometn.koemans.web.vararg
 import com.shinonometn.music.server.commons.CR
 import com.shinonometn.music.server.commons.businessError
 import com.shinonometn.music.server.media.MediaScope
-import com.shinonometn.music.server.media.service.MetaManagementService
-import com.shinonometn.music.server.platform.security.commons.AC
+import com.shinonometn.music.server.media.service.AlbumService
 import com.shinonometn.music.server.platform.security.commons.accessControl
 import io.ktor.application.*
 import io.ktor.http.*
@@ -20,7 +19,7 @@ import org.springframework.stereotype.Controller
 
 @Controller
 @KtorRoute("/api/meta/album")
-class AlbumManagementApi(private val service: MetaManagementService) {
+class AlbumManagementApi(private val albumService: AlbumService) {
 /* Album */
 
     class AlbumCreateRequest(param: Parameters) {
@@ -51,7 +50,7 @@ class AlbumManagementApi(private val service: MetaManagementService) {
     fun Route.albumApis() = accessControl(MediaScope.Admin.AlbumManagement) {
         post {
             val request = AlbumCreateRequest(call.receiveParameters())
-            val result = background { service.createAlbum(request.title, request.albumArtIds, request.albumArtistIds) }
+            val result = background { albumService.createAlbum(request.title, request.albumArtIds, request.albumArtistIds) }
             call.respond(mapOf("album" to result))
         }
 
@@ -59,13 +58,13 @@ class AlbumManagementApi(private val service: MetaManagementService) {
             post {
                 val id = call.parameters["id"]?.toLongOrNull() ?: businessError("id_should_be_number")
                 val request = AlbumCreateRequest(call.receiveParameters())
-                val result = background { service.updateAlbum(id, request.title, request.albumArtIds, request.albumArtistIds) }
+                val result = background { albumService.updateAlbum(id, request.title, request.albumArtIds, request.albumArtistIds) }
                 call.respond(mapOf("album" to result))
             }
 
             delete {
                 val id = call.parameters["id"]?.toLongOrNull() ?: businessError("id_should_be_number")
-                val result = background { service.deleteAlbum(id) } > 0
+                val result = background { albumService.deleteAlbumById(id) } > 0
                 call.respond(CR.successOrFailed(result))
             }
         }

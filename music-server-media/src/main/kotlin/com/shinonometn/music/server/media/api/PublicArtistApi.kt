@@ -1,16 +1,14 @@
 package com.shinonometn.music.server.media.api
 
 import com.shinonometn.koemans.coroutine.background
-import com.shinonometn.koemans.exposed.FilterOptionMapping
-import com.shinonometn.koemans.exposed.SortOptionMapping
 import com.shinonometn.koemans.receiveFilterOptions
 import com.shinonometn.koemans.receivePageRequest
 import com.shinonometn.koemans.receiveSortOptions
 import com.shinonometn.koemans.web.spring.route.KtorRoute
 import com.shinonometn.ktor.server.access.control.accessControl
 import com.shinonometn.music.server.commons.businessError
-import com.shinonometn.music.server.commons.validationError
 import com.shinonometn.music.server.media.data.ArtistData
+import com.shinonometn.music.server.media.service.ArtistService
 import com.shinonometn.music.server.media.service.MetaManagementService
 import com.shinonometn.music.server.platform.security.commons.AC
 import io.ktor.application.*
@@ -20,7 +18,7 @@ import org.springframework.stereotype.Controller
 
 @Controller
 @KtorRoute("/api/meta/artist")
-class PublicArtistApi(private val service: MetaManagementService) {
+class PublicArtistApi(private val artistServcie: ArtistService) {
 
     @KtorRoute
     fun Route.artistApi() = accessControl(AC.Guest) {
@@ -45,7 +43,7 @@ class PublicArtistApi(private val service: MetaManagementService) {
             val paging = call.receivePageRequest()
             val sorting = call.receiveSortOptions(ArtistData.sortingOptions)
             val filtering = call.receiveFilterOptions(ArtistData.filteringOptions)
-            val result = background { service.findAllArtists(paging, sorting, filtering).convert { mapOf("artist" to it) } }
+            val result = background { artistServcie.findAllArtists(paging, sorting, filtering).convert { mapOf("artist" to it) } }
             call.respond(result)
         }
 
@@ -65,7 +63,7 @@ class PublicArtistApi(private val service: MetaManagementService) {
         route("/{id}") {
             get {
                 val id = call.parameters["id"]?.toLongOrNull() ?: businessError("id_should_be_number")
-                val result = background { service.getArtistById(id) }
+                val result = background { artistServcie.getArtistById(id) }
                 call.respond(mapOf("artist" to result))
             }
         }

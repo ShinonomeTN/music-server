@@ -8,8 +8,9 @@ import com.shinonometn.music.server.commons.CR
 import com.shinonometn.music.server.commons.businessError
 import com.shinonometn.music.server.commons.vararg
 import com.shinonometn.music.server.media.MediaScope
-import com.shinonometn.music.server.media.service.MetaManagementService
-import com.shinonometn.music.server.platform.security.commons.AC
+import com.shinonometn.music.server.media.service.AlbumService
+import com.shinonometn.music.server.media.service.ArtistService
+import com.shinonometn.music.server.media.service.TrackService
 import com.shinonometn.music.server.platform.security.commons.accessControl
 import io.ktor.application.*
 import io.ktor.http.*
@@ -20,7 +21,11 @@ import org.springframework.stereotype.Controller
 
 @Controller
 @KtorRoute("/api/meta/track")
-class TrackManagementApi(private val service: MetaManagementService) {
+class TrackManagementApi(
+    private val trackService: TrackService,
+    private val albumService: AlbumService,
+    private val artistService: ArtistService
+) {
     /* Track */
 
     class TrackInfoForm(params: Parameters) {
@@ -54,10 +59,10 @@ class TrackManagementApi(private val service: MetaManagementService) {
     fun Route.trackApis() = accessControl(MediaScope.Admin.TrackManagement) {
         post {
             val request = TrackInfoForm(call.receiveParameters())
-            if (request.albumId != null && !service.isAlbumExists(request.albumId)) businessError("album_not_exists")
-            if (request.artistIds.isNotEmpty() && !service.isArtistsExists(request.artistIds)) businessError("artist_not_exists")
+            if (request.albumId != null && !albumService.isAlbumExists(request.albumId)) businessError("album_not_exists")
+            if (request.artistIds.isNotEmpty() && !artistService.isArtistsExists(request.artistIds)) businessError("artist_not_exists")
             val result = background {
-                service.createTrack(
+                trackService.createTrack(
                     request.title, request.diskNumber, request.trackNumber, request.albumId, request.artistIds
                 )
             }
@@ -68,9 +73,9 @@ class TrackManagementApi(private val service: MetaManagementService) {
             post {
                 val id = call.parameters["id"]?.toLongOrNull() ?: businessError("id_should_be_number")
                 val request = TrackInfoForm(call.receiveParameters())
-                if (request.albumId != null && !service.isAlbumExists(request.albumId)) businessError("album_not_exists")
+                if (request.albumId != null && !albumService.isAlbumExists(request.albumId)) businessError("album_not_exists")
                 val result = background {
-                    service.updateTrack(
+                    trackService.updateTrack(
                         id, request.title, request.diskNumber, request.trackNumber, request.albumId, request.artistIds
                     )
                 }
@@ -80,7 +85,7 @@ class TrackManagementApi(private val service: MetaManagementService) {
             delete {
                 val id = call.parameters["id"]?.toLongOrNull() ?: businessError("id_should_be_number")
                 call.respond(CR.successOrFailed(background {
-                    service.deleteTrack(id)
+                    trackService.deleteTrack(id)
                 }))
             }
         }

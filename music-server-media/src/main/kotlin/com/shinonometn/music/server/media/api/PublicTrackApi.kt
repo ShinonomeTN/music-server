@@ -9,6 +9,7 @@ import com.shinonometn.ktor.server.access.control.accessControl
 import com.shinonometn.music.server.commons.businessError
 import com.shinonometn.music.server.media.data.TrackData
 import com.shinonometn.music.server.media.service.MetaManagementService
+import com.shinonometn.music.server.media.service.TrackService
 import com.shinonometn.music.server.platform.security.commons.AC
 import io.ktor.application.*
 import io.ktor.response.*
@@ -17,7 +18,7 @@ import org.springframework.stereotype.Controller
 
 @Controller
 @KtorRoute("/api/meta/track")
-class PublicTrackApi(private val service: MetaManagementService) {
+class PublicTrackApi(private val trackService: TrackService) {
 
     @KtorRoute
     fun Route.trackApi() = accessControl(AC.Guest) {
@@ -48,7 +49,7 @@ class PublicTrackApi(private val service: MetaManagementService) {
             val sorting = call.receiveSortOptions(TrackData.sortOptions)
             val filtering = call.receiveFilterOptions(TrackData.filteringOptions)
             val tracks = background {
-                service.listAllTracks(paging, filtering, sorting).convert {
+                trackService.listAllTracks(paging, filtering, sorting).convert {
                     mapOf("track" to it)
                 }
             }
@@ -70,7 +71,7 @@ class PublicTrackApi(private val service: MetaManagementService) {
              */
             get {
                 val id = call.parameters["id"]?.toLongOrNull() ?: businessError("id_should_be_number")
-                val result = background { service.getTrackById(id) }
+                val result = background { trackService.getTrackById(id) }
                 call.respond(mapOf("track" to result))
             }
         }
