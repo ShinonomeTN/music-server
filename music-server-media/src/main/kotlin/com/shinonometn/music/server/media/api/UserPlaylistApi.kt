@@ -11,6 +11,7 @@ import com.shinonometn.koemans.web.spring.route.KtorRoute
 import com.shinonometn.music.server.commons.CR
 import com.shinonometn.music.server.commons.validationError
 import com.shinonometn.music.server.media.MediaScope
+import com.shinonometn.music.server.media.data.PlaylistData
 import com.shinonometn.music.server.media.data.PlaylistItemData
 import com.shinonometn.music.server.media.service.PlaylistService
 import com.shinonometn.music.server.platform.security.commons.*
@@ -34,6 +35,10 @@ class UserPlaylistApi(private val playlistService: PlaylistService, private val 
          * [GET] /api/playlist
          * ## Parameters
          * - @bean(Page)
+         * - Sort options
+         * ## Sort options
+         * - create_date: sort by create data
+         * - update_date: sort by udpate date
          * ## Returns
          * @bean(Page) with @bean(PlaylistData.Bean)
          * ```
@@ -44,6 +49,7 @@ class UserPlaylistApi(private val playlistService: PlaylistService, private val 
             val identity = call.acUserIdentityNotNull
             val userId = identity.userId
             val paging = call.receivePageRequest()
+            val sorting = call.receiveSortOptions(PlaylistData.sortingOptions)
             call.respond(background {
                 playlistService.findAllByUserId(userId, paging).convert {
                     mapOf("playlist" to it)

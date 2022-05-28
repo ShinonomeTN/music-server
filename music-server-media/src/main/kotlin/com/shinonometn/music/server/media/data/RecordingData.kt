@@ -1,15 +1,29 @@
 package com.shinonometn.music.server.media.data
 
+import com.shinonometn.koemans.exposed.*
 import com.shinonometn.music.server.media.data.AlbumData.Table.clientDefault
 import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.javatime.datetime
+import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.selectAll
 import java.time.LocalDateTime
 
 object RecordingData {
+    val sortOptions = SortOptionMapping {
+        "create_date" associateTo Table.colCreateDate
+    }
+
+    val filterOptions = FilterOptionMapping {
+        "protocol" means { Table.colProtocol eq it.asString() }
+        "server" means { Table.colServer eq it.asString() }
+    }
+
     fun deleteById(recordingId: Long): Boolean {
         return Table.deleteWhere { Table.id eq recordingId } > 0
     }
@@ -20,6 +34,12 @@ object RecordingData {
 
     fun deleteByTrackId(id: Long): Int {
         return Table.deleteWhere { Table.colTrackId eq id }
+    }
+
+    fun findAllByTrackId(id: Long, filtering: FilterRequest, sorting: SortRequest): List<Bean> {
+        return Table.selectBy(filtering) { it and (Table.colTrackId eq id ) }
+                    .orderBy(sorting)
+                    .map { Bean(Entity.wrapRow(it)) }
     }
 
     object Table : LongIdTable("tb_recording_data") {

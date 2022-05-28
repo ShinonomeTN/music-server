@@ -2,6 +2,7 @@ package com.shinonometn.music.server.media.api.admin
 
 import com.shinonometn.koemans.coroutine.background
 import com.shinonometn.koemans.receivePageRequest
+import com.shinonometn.koemans.receiveSortOptions
 import com.shinonometn.koemans.web.spring.route.KtorRoute
 import com.shinonometn.music.server.commons.CR
 import com.shinonometn.music.server.commons.validationError
@@ -26,7 +27,8 @@ class CoverArtManagementApi(private val coverArtService: CoverArtService) {
     fun Route.coverArtManagementApi() = accessControl(MediaScope.Admin.CoverManagement) {
         get {
             val paging = call.receivePageRequest()
-            val result = coverArtService.findAll(paging).convert {
+            val sorting = call.receiveSortOptions(CoverArtData.sortOptions)
+            val result = coverArtService.findAll(paging, sorting).convert {
                 mapOf("coverArt" to it)
             }
 

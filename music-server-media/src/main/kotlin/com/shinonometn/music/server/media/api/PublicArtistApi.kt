@@ -1,11 +1,16 @@
 package com.shinonometn.music.server.media.api
 
 import com.shinonometn.koemans.coroutine.background
+import com.shinonometn.koemans.exposed.FilterOptionMapping
+import com.shinonometn.koemans.exposed.SortOptionMapping
+import com.shinonometn.koemans.receiveFilterOptions
 import com.shinonometn.koemans.receivePageRequest
+import com.shinonometn.koemans.receiveSortOptions
 import com.shinonometn.koemans.web.spring.route.KtorRoute
 import com.shinonometn.ktor.server.access.control.accessControl
 import com.shinonometn.music.server.commons.businessError
 import com.shinonometn.music.server.commons.validationError
+import com.shinonometn.music.server.media.data.ArtistData
 import com.shinonometn.music.server.media.service.MetaManagementService
 import com.shinonometn.music.server.platform.security.commons.AC
 import io.ktor.application.*
@@ -24,6 +29,12 @@ class PublicArtistApi(private val service: MetaManagementService) {
          * [GET] /api/meta/artist
          * ## Parameters
          * - @bean(Pagination)
+         * - Sort options
+         * - Filter options
+         * ## Sort options
+         * - create_date: by artist record create date
+         * ## Filter options
+         * - name: name matches given name
          * ## Returns
          * @bean(Page) of @bean(ArtistData.Bean)
          * ```
@@ -32,27 +43,10 @@ class PublicArtistApi(private val service: MetaManagementService) {
          */
         get {
             val paging = call.receivePageRequest()
-            val result = background { service.findAllArtists(paging).convert { mapOf("artist" to it) } }
+            val sorting = call.receiveSortOptions(ArtistData.sortingOptions)
+            val filtering = call.receiveFilterOptions(ArtistData.filteringOptions)
+            val result = background { service.findAllArtists(paging, sorting, filtering).convert { mapOf("artist" to it) } }
             call.respond(result)
-        }
-
-        /** @restful_api_doc
-         * # Get artists by name
-         * [GET] /api/meta/artist?name={name}
-         * ## Parameters
-         * - name : Artist name
-         * ## Returns
-         * List of @bean(ArtistData.Bean)
-         * ```
-         * { artist : @bean(ArtistData.Bean) }
-         * ```
-         */
-        param("name") {
-            get {
-                val name = call.parameters["name"] ?: validationError("invalid_artist_name")
-                val result = background { service.findArtistsByName(name).map { mapOf("artist" to it) } }
-                call.respond(result)
-            }
         }
 
         /** @restful_api_doc

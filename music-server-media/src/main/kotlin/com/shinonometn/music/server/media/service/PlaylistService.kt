@@ -1,5 +1,6 @@
 package com.shinonometn.music.server.media.service
 
+import com.shinonometn.koemans.exposed.FilterRequest
 import com.shinonometn.koemans.exposed.Page
 import com.shinonometn.koemans.exposed.PageRequest
 import com.shinonometn.koemans.exposed.SortRequest
@@ -115,7 +116,9 @@ class PlaylistService(private val database: SqlDatabase) {
         PlaylistData.isUserOwnPlaylist(userId, playlistId)
     }
 
-    fun findAllPublicPlaylist(paging: PageRequest, sorting: SortRequest) = database {
-        PlaylistData.findAllPublic(paging, sorting)
+    fun findAllPublicPlaylist(paging: PageRequest, filtering: FilterRequest, sorting: SortRequest): Page<PlaylistData.Bean> {
+        return database {
+            PlaylistData.findAllPublic(paging, filtering, sorting)
+        }
     }
 }

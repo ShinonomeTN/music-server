@@ -2,6 +2,7 @@ package com.shinonometn.music.server.media.service
 
 import com.shinonometn.koemans.exposed.Page
 import com.shinonometn.koemans.exposed.PageRequest
+import com.shinonometn.koemans.exposed.SortRequest
 import com.shinonometn.koemans.exposed.database.SqlDatabase
 import com.shinonometn.music.server.media.data.CoverArtData
 import com.shinonometn.music.server.media.event.CoverArtDeleteEvent
@@ -34,8 +35,6 @@ class CoverArtService(
     fun get(path: String): InputStream? {
         return fileService.get(path).inputStream()
     }
-
-    class CoverArtInfo(val image: BufferedImage, val mimeType: String)
 
     class ImageOperation(private val bufferedImage: BufferedImage, builder: ImageOperation.() -> Unit) {
         var width = bufferedImage.width
@@ -148,5 +147,11 @@ class CoverArtService(
         fileService.delete(coverArt.filePath)
         eventPublisher.publishEvent(CoverArtDeleteEvent(this, id))
         1
+    }
+
+    fun findAll(paging: PageRequest, sorting: SortRequest): Page<CoverArtData.Bean> {
+        return database {
+            CoverArtData.findAll(paging, sorting)
+        }
     }
 }

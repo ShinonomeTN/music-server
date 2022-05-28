@@ -1,10 +1,7 @@
 package com.shinonometn.music.server.media.data
 
 import com.fasterxml.jackson.databind.JsonNode
-import com.shinonometn.koemans.exposed.Page
-import com.shinonometn.koemans.exposed.PageRequest
-import com.shinonometn.koemans.exposed.countBy
-import com.shinonometn.koemans.exposed.pagingBy
+import com.shinonometn.koemans.exposed.*
 import com.shinonometn.music.server.commons.LongIdMetaDataTable
 import com.shinonometn.music.server.commons.transformJsonNode
 import org.jetbrains.exposed.dao.LongEntity
@@ -12,10 +9,19 @@ import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.javatime.datetime
+import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.selectAll
 import java.time.LocalDateTime
 
 object ArtistData {
+
+    val sortingOptions = SortOptionMapping {
+        "create_date" associateTo ArtistData.Table.colCreateDate
+    }
+    val filteringOptions = FilterOptionMapping {
+        "name" means { ArtistData.Table.colName eq it.asString() }
+    }
+
     fun findAll(paging: PageRequest): Page<Bean> {
         return Table.selectAll().pagingBy(paging) {
             Bean(Entity.wrapRow(it))
@@ -36,6 +42,12 @@ object ArtistData {
 
     fun findByName(name: String): List<Bean> {
         return Entity.find { Table.colName eq name }.map { Bean(it) }
+    }
+
+    fun findAll(paging: PageRequest, sorting: SortRequest, filtering: FilterRequest): Page<Bean> {
+        return Table.selectBy(filtering).orderBy(sorting).pagingBy(paging) {
+            Bean(Entity.wrapRow(it))
+        }
     }
 
     object Table : LongIdMetaDataTable("tb_artist_data") {

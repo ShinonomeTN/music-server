@@ -1,7 +1,6 @@
 package com.shinonometn.music.server.media.service
 
-import com.shinonometn.koemans.exposed.Page
-import com.shinonometn.koemans.exposed.PageRequest
+import com.shinonometn.koemans.exposed.*
 import com.shinonometn.koemans.exposed.database.SqlDatabase
 import com.shinonometn.music.server.media.data.*
 import com.shinonometn.music.server.media.event.CoverArtDeleteEvent
@@ -23,6 +22,10 @@ class MetaManagementService(private val database: SqlDatabase) {
         return database {
             TrackData.listAll(paging)
         }
+    }
+
+    fun findTracksByAlbumId(id: Long): List<TrackData.Bean> = database {
+        TrackData.findAllByAlbumId(id)
     }
 
     fun createTrack(title: String, disNumber: Int?, trackNumber: Int?, albumId: Long?, artistIds: List<Long>): TrackData.Bean? {
@@ -69,6 +72,19 @@ class MetaManagementService(private val database: SqlDatabase) {
         }
     }
 
+    fun listAllTracks(paging: PageRequest, filtering: FilterRequest, sorting: SortRequest): Page<TrackData.Bean> {
+        return database {
+            TrackData.findAll(paging, filtering, sorting)
+        }
+    }
+
+    fun deleteTrack(id: Long): Int = database {
+        RecordingData.deleteByTrackId(id) +
+                TrackArtistRelation.deleteRelationshipsByTrackId(id) +
+                TrackData.deleteById(id)
+    }
+
+
     /* Recording */
 
     fun addTrackRecording(trackId: Long, protocol: String, server: String, location: String): RecordingData.Bean {
@@ -94,6 +110,13 @@ class MetaManagementService(private val database: SqlDatabase) {
 
     fun deleteTrackRecording(recordingId: Long): Boolean {
         return database { RecordingData.deleteById(recordingId) }
+    }
+
+
+    fun getRecordingsByTrackId(id: Long, filtering: FilterRequest ,sorting: SortRequest): List<RecordingData.Bean> {
+        return database {
+            RecordingData.findAllByTrackId(id, filtering, sorting)
+        }
     }
 
     /* Album */
@@ -135,8 +158,14 @@ class MetaManagementService(private val database: SqlDatabase) {
         AlbumData.Entity.findById(id)?.let { AlbumData.Bean(it) }
     }
 
-    fun findAllAlbums(paging: PageRequest): Page<AlbumData.Bean> {
-        return database { AlbumData.findAll(paging) }
+    fun findAllAlbums(paging: PageRequest, sorting : SortRequest) : Page<AlbumData.Bean> {
+        return database { AlbumData.findAll(paging, sorting) }
+    }
+
+    fun deleteAlbum(id: Long) : Int = database {
+        AlbumArtCoverRelation.removeAllRelationsByAlbumId(id) +
+                TrackData.removeAlbumRelation(id) +
+                AlbumData.deleteById(id)
     }
 
     /* Artist */
@@ -169,19 +198,26 @@ class MetaManagementService(private val database: SqlDatabase) {
         }
     }
 
+
+    fun findAllArtists(paging: PageRequest, sorting: SortRequest, filtering: FilterRequest): Page<ArtistData.Bean> {
+        return database {
+            ArtistData.findAll(paging, sorting, filtering)
+        }
+    }
+
+    fun deleteArtist(id: Long): Int = TrackArtistRelation.deleteByArtistId(id) +
+            ArtistCoverArtRelation.removeAllRelationsByArtistId(id) +
+            ArtistData.deleteById(id)
+
     fun isArtistsExists(artistIds: List<Long>): Boolean {
         return database { ArtistData.isArtistsExists(artistIds) }
     }
 
     fun getArtistById(id: Long) = database { ArtistData.findById(id) }
 
-    fun getRecordingsByTrackId(id: Long) = database {
-        RecordingData.findAllByTrackId(id)
-    }
-
-    fun findAllAlbumTracks(id: Long): List<TrackData.Bean> = database {
-        TrackData.findAllByAlbumId(id)
-    }
+    //
+    // Event handlers
+    //
 
     @EventListener(CoverArtDeleteEvent::class)
     fun onCoverArtDelete(event: CoverArtDeleteEvent) {
@@ -191,25 +227,5 @@ class MetaManagementService(private val database: SqlDatabase) {
             val clearedArtistCover = ArtistCoverArtRelation.removeAllRelationsByCoverId(event.id)
             logger.info("Clear {} artist cover associated to {}.", clearedArtistCover, event.id)
         }
-    }
-
-    fun deleteAlbum(id: Long) : Int = database {
-        AlbumArtCoverRelation.removeAllRelationsByAlbumId(id) +
-                TrackData.removeAlbumRelation(id) +
-                AlbumData.deleteById(id)
-    }
-
-    fun deleteArtist(id: Long): Int = TrackArtistRelation.deleteByArtistId(id) +
-            ArtistCoverArtRelation.removeAllRelationsByArtistId(id) +
-            ArtistData.deleteById(id)
-
-    fun deleteTrack(id: Long): Int = database {
-         RecordingData.deleteByTrackId(id) +
-                 TrackArtistRelation.deleteRelationshipsByTrackId(id) +
-                 TrackData.deleteById(id)
-    }
-
-    fun findArtistsByName(name: String) = database {
-        ArtistData.findByName(name)
     }
 }

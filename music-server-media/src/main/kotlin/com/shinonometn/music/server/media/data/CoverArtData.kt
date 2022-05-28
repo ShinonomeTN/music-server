@@ -1,8 +1,6 @@
 package com.shinonometn.music.server.media.data
 
-import com.shinonometn.koemans.exposed.Page
-import com.shinonometn.koemans.exposed.PageRequest
-import com.shinonometn.koemans.exposed.pagingBy
+import com.shinonometn.koemans.exposed.*
 import com.shinonometn.music.server.media.data.AlbumData.Table.clientDefault
 import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
@@ -24,6 +22,15 @@ object CoverArtData {
         return Table.deleteWhere { Table.id eq id }
     }
 
+    fun findAll(paging: PageRequest, sorting: SortRequest): Page<Bean> {
+        return Table.selectAll().orderBy(sorting).pagingBy(paging) {
+            Bean(Entity.wrapRow(it))
+        }
+    }
+
+    var sortOptions = SortOptionMapping {
+        "create_date" associateTo Table.colCreateDate
+    }
 
     object Table : LongIdTable("tb_art_cover") {
         val colFilePath = varchar("file_path", 255)

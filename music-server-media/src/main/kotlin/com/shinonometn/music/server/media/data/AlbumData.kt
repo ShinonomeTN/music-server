@@ -1,10 +1,7 @@
 package com.shinonometn.music.server.media.data
 
 import com.fasterxml.jackson.databind.JsonNode
-import com.shinonometn.koemans.exposed.Page
-import com.shinonometn.koemans.exposed.PageRequest
-import com.shinonometn.koemans.exposed.countBy
-import com.shinonometn.koemans.exposed.pagingBy
+import com.shinonometn.koemans.exposed.*
 import com.shinonometn.music.server.commons.LongIdMetaDataTable
 import com.shinonometn.music.server.commons.transformJsonNode
 import org.jetbrains.exposed.dao.LongEntity
@@ -37,6 +34,12 @@ object AlbumData {
 
     fun deleteById(id: Long): Int {
         return Table.deleteWhere { Table.id eq id }
+    }
+
+    fun findAll(paging: PageRequest, sorting: SortRequest): Page<Bean> {
+        return Table.selectAll().orderBy(sorting).pagingBy(paging) {
+            Bean(Entity.wrapRow(it))
+        }
     }
 
     object Table : LongIdMetaDataTable("tb_album_data") {

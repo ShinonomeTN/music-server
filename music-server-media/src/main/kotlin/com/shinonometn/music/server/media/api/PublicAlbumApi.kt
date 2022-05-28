@@ -1,10 +1,13 @@
 package com.shinonometn.music.server.media.api
 
 import com.shinonometn.koemans.coroutine.background
+import com.shinonometn.koemans.exposed.SortOptionMapping
 import com.shinonometn.koemans.receivePageRequest
+import com.shinonometn.koemans.receiveSortOptions
 import com.shinonometn.koemans.web.spring.route.KtorRoute
 import com.shinonometn.ktor.server.access.control.accessControl
 import com.shinonometn.music.server.commons.businessError
+import com.shinonometn.music.server.media.data.AlbumData
 import com.shinonometn.music.server.media.service.MetaManagementService
 import com.shinonometn.music.server.platform.security.commons.AC
 import io.ktor.application.*
@@ -23,15 +26,22 @@ class PublicAlbumApi(private val service: MetaManagementService) {
          * [GET] /api/meta/album
          * ## Parameters
          * - @bean(Pagination)
+         * - Sort options
+         * ## Sort options
+         * - create_date: Album data create date
          * ## Returns
          * @bean(Page) of @bean(AlbumData.Bean)
          * ```
          * {..., content: [{ album : @bean(AlbumData.Bean) }]}
          * ```
          */
+        val albumSorting = SortOptionMapping {
+            "create_date" associateTo AlbumData.Table.colCreateDate
+        }
         get {
             val paging = call.receivePageRequest()
-            val result = background { service.findAllAlbums(paging).convert { mapOf("album" to it) } }
+            val sorting = call.receiveSortOptions(albumSorting)
+            val result = background { service.findAllAlbums(paging, sorting).convert { mapOf("album" to it) } }
             call.respond(result)
         }
 
@@ -56,10 +66,11 @@ class PublicAlbumApi(private val service: MetaManagementService) {
             /** @restful_api_doc
              * # Get album tracks
              * [GET] /api/meta/album/{id}/track
+             * For advance track finding, please use @api([GET] /api/meta/track)
              * ## Parameters
              * - id : album id
              * ## Returns
-             * List of @bean(TrackData.Bean)
+             * List of @bean(TrackData.Bean), sorted by disk id and track id
              * ```
              * [ { track: @bean(TrackData.Bean) } ]
              * ```
@@ -67,7 +78,7 @@ class PublicAlbumApi(private val service: MetaManagementService) {
             route("/track") {
                 get {
                     val id = call.parameters["id"]?.toLongOrNull() ?: businessError("id_should_be_number")
-                    val result = background { service.findAllAlbumTracks(id).map { mapOf("track" to it) } }
+                    val result = background { service.findTracksByAlbumId(id).map { mapOf("track" to it) } }
                     call.respond(result)
                 }
             }

@@ -1,9 +1,7 @@
 package com.shinonometn.music.server.media.data
 
 import com.fasterxml.jackson.databind.JsonNode
-import com.shinonometn.koemans.exposed.Page
-import com.shinonometn.koemans.exposed.PageRequest
-import com.shinonometn.koemans.exposed.pagingBy
+import com.shinonometn.koemans.exposed.*
 import com.shinonometn.music.server.commons.LongIdMetaDataTable
 import com.shinonometn.music.server.commons.transformJsonNode
 import org.jetbrains.exposed.dao.LongEntity
@@ -39,6 +37,25 @@ object TrackData {
 
     fun removeAlbumRelation(id : Long) : Int {
         return Table.update({ Table.colAlbumId eq id }) { it[colAlbumId] = null }
+    }
+
+    fun findAll(paging: PageRequest, filtering: FilterRequest, sorting: SortRequest): Page<Bean> {
+        return Table.selectBy(filtering).orderBy(sorting).pagingBy(paging) {
+            Bean(Entity.wrapRow(it))
+        }
+    }
+
+    val filteringOptions = FilterOptionMapping {
+        "album_id" means { Table.colAlbumId eq it.asString().toLong() }
+        "title" means { Table.colTitle eq it.asString() }
+        "disk_number" means { Table.colDiskNumber eq it.asString().toIntOrNull() }
+        "track_number" means { Table.colTrackNumber eq it.asString().toIntOrNull() }
+    }
+
+    val sortOptions = SortOptionMapping {
+        "create_date" associateTo Table.colCreateDate
+        "disk_number" associateTo Table.colDiskNumber
+        "track_number" associateTo Table.colTrackNumber
     }
 
     object Table : LongIdMetaDataTable("tb_track_data") {

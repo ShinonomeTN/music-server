@@ -11,6 +11,7 @@ import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.update
 import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 object PlaylistData {
     fun findAll(paging: PageRequest): Page<Bean> {
@@ -47,6 +48,30 @@ object PlaylistData {
         return Table.select { Table.colIsPrivate eq false }.orderBy(sorting).pagingBy(paging) {
             Bean(Entity.wrapRow(it))
         }
+    }
+
+    fun findAllPublic(paging: PageRequest, filtering: FilterRequest, sorting: SortRequest): Page<Bean> {
+        return Table.selectBy(filtering) { it and (Table.colIsPrivate eq false) }
+                    .orderBy(sorting)
+                    .pagingBy(paging) {
+                        Bean(Entity.wrapRow(it))
+                    }
+    }
+
+    val filterOptions = FilterOptionMapping {
+        val datetimeParser = DateTimeFormatter.ISO_DATE_TIME
+        "creator_id" means { Table.colCreatorId eq it.asString().toLong() }
+        "is_private" means { Table.colIsPrivate eq it.asString().toBoolean() }
+        "name" means { Table.colName eq it.asString() }
+        "created_after" means{ Table.colCreatedAt greaterEq LocalDateTime.from(datetimeParser.parse(it.asString())) }
+        "created_before" means { Table.colCreatedAt lessEq LocalDateTime.from(datetimeParser.parse(it.asString())) }
+        "updated_after" means { Table.colUpdateAt greaterEq LocalDateTime.from(datetimeParser.parse(it.asString())) }
+        "updated_before" means { Table.colUpdateAt lessEq LocalDateTime.from(datetimeParser.parse(it.asString())) }
+    }
+
+    val sortingOptions = SortOptionMapping {
+        "create_date" associateTo Table.colCreatedAt
+        "update_date" associateTo Table.colUpdateAt
     }
 
     object Table : LongIdTable("tb_playlist") {
