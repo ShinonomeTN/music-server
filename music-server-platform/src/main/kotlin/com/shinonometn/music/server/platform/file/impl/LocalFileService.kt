@@ -1,10 +1,9 @@
 package com.shinonometn.music.server.platform.file.impl
 
 import com.shinonometn.music.server.commons.copyTo
-import com.shinonometn.music.server.commons.toByteArray
 import com.shinonometn.music.server.platform.file.PlatformFileInfo
 import com.shinonometn.music.server.platform.file.PlatformFileService
-import org.apache.commons.codec.binary.Hex
+import org.apache.commons.codec.binary.Base64
 import org.apache.commons.codec.digest.DigestUtils
 import java.io.File
 import java.io.InputStream
@@ -15,9 +14,9 @@ import java.util.concurrent.locks.ReentrantLock
 
 class LocalFileService(configuration: Configuration.() -> Unit) : PlatformFileService {
 
-    private val storageLocation : String
-    private val subPath : String
-    private val host : String
+    private val storageLocation: String
+    private val subPath: String
+    private val host: String
 
     private val folderCreateLock = ReentrantLock()
 
@@ -33,17 +32,18 @@ class LocalFileService(configuration: Configuration.() -> Unit) : PlatformFileSe
     }
 
     class Configuration {
-        var host : String? = null
-        var path : String? = null
-        var localStorageLocation : String? = null
+        var host: String? = null
+        var path: String? = null
+        var localStorageLocation: String? = null
     }
 
     // Generate a filename base on sha256
-    private fun generateFilePath(inputString: InputStream, filename : String): Path {
-        val sha256 = DigestUtils.sha256Hex(inputString)
-        val datetime = Hex.encodeHexString(System.currentTimeMillis().toByteArray())
-        val newFilename = "${sha256}_$datetime${filename.substring(filename.lastIndexOf("."))}"
-        val folder = sha256.subSequence(0, 2).toString()
+    private fun generateFilePath(file: File, filename: String): Path {
+        val hash = Base64.encodeBase64URLSafeString(
+            file.inputStream().use { DigestUtils.sha256(it) } + file.inputStream().use { DigestUtils.md5(it) }
+        )
+        val newFilename = "${hash}${filename.substring(filename.lastIndexOf("."))}"
+        val folder = hash.subSequence(0, 2).toString()
         return Paths.get(folder, newFilename)
     }
 
@@ -52,10 +52,10 @@ class LocalFileService(configuration: Configuration.() -> Unit) : PlatformFileSe
         temp.deleteOnExit()
         temp.outputStream().use { inputStream.copyTo(it) }
 
-        val filePath = temp.inputStream().use { generateFilePath(it, originFilename) }
+        val filePath = generateFilePath(temp, originFilename)
 
         val localFile = Paths.get(storageLocation, filePath.toString()).toFile()
-        if(!localFile.parentFile.exists()) {
+        if (!localFile.parentFile.exists()) {
             folderCreateLock.lock()
             try {
                 require(localFile.parentFile.mkdirs()) { "Could not create directory '${localFile.parentFile.absoluteFile}'." }
