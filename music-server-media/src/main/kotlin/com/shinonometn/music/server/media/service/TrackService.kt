@@ -50,7 +50,7 @@ class TrackService(private val database: SqlDatabase) {
             entity.trackNumber = trackNumber
 
             artistIds.forEach { artistId ->
-                TrackArtistRelation.Table.deleteWhere { TrackArtistRelation.Table.colArtist eq artistId }
+                TrackArtistRelation.deleteRelationshipsByTrackId(id)
                 TrackArtistRelation.Table.insert {
                     it[colTrack] = entity.id
                     it[colArtist] = EntityID(artistId, ArtistData.Table)
