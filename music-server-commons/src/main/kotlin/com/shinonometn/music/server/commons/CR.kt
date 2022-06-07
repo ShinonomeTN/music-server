@@ -1,6 +1,7 @@
 package com.shinonometn.music.server.commons
 
 import io.ktor.application.*
+import io.ktor.freemarker.*
 import io.ktor.response.*
 
 object CR {
@@ -23,6 +24,13 @@ object CR {
         else -> "success"
     })
 
+    fun freemarker(template : String, model : Map<String, Any?>) : FreeMarkerContent {
+        return FreeMarkerContent(template, mapOf(
+            "model" to model,
+            "modelJson" to Jackson.mapper.writeValueAsString(model)
+        ))
+    }
+
     object Error {
         fun noACSession(): Nothing = throw BusinessException("no_ac_session", "unexpected_error")
         fun noACIdentity(): Nothing = throw BusinessException("no_ac_identity", "unexpected_error")
@@ -30,6 +38,21 @@ object CR {
 
         fun unauthenticated(): Nothing = throw BusinessException("unauthenticated", "unauthenticated")
         fun forbidden(message : String = "forbidden"): Nothing = throw BusinessException("forbidden", message)
+
+
+        fun notFound(message: String = "not_found") : Nothing = throw BusinessException("resource_not_found", message)
+
+//        fun freemarkerNotFound(message : String, additional : Map<Any, Any?> = emptyMap()) : FreeMarkerContent {
+//            val map = mapOf(
+//                "error" to "resource_not_found",
+//                "message" to message
+//            ) + additional
+//
+//            return FreeMarkerContent("not_found", mapOf(
+//                "bean" to map,
+//                "beanJson" to Jackson.mapper.writeValueAsString(map)
+//            ))
+//        }
     }
 
     internal val self = CR

@@ -19,6 +19,7 @@ import org.springframework.stereotype.Controller
 @KtorRoute("/api/meta/artist")
 class PublicArtistApi(private val artistServcie: ArtistService) {
 
+    // TODO: Artist webpage and preview
     @KtorRoute
     fun Route.artistApi() = accessControl(AC.Guest) {
         /** @restful_api_doc

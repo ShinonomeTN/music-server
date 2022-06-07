@@ -7,6 +7,7 @@ import com.shinonometn.koemans.web.ParamValidationException
 import com.shinonometn.koemans.web.spring.configuration.KtorConfiguration
 import com.shinonometn.music.server.commons.BusinessException
 import com.shinonometn.music.server.commons.Jackson
+import com.shinonometn.music.server.platform.common.FreemarkerExtension
 import com.shinonometn.music.server.platform.security.api.OAuthApi
 import com.shinonometn.music.server.platform.security.api.OAuthError
 import io.ktor.application.*
@@ -16,9 +17,15 @@ import io.ktor.response.*
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.FilterType
 
 @Configuration
-@ComponentScan("com.shinonometn.music.server")
+@ComponentScan(
+    "com.shinonometn.music.server",
+    includeFilters = [ComponentScan.Filter(
+        type = FilterType.ANNOTATION, classes = [FreemarkerExtension::class]
+    )]
+)
 open class PlatformAutoConfiguration {
 
     @KtorConfiguration

@@ -1,7 +1,7 @@
-package com.shinonometn.music.server.media.api
+package com.shinonometn.music.server.library.api
 
 import com.shinonometn.koemans.coroutine.background
-import com.shinonometn.koemans.exposed.SortOptionMapping
+import com.shinonometn.koemans.receiveFilterOptions
 import com.shinonometn.koemans.receivePageRequest
 import com.shinonometn.koemans.receiveSortOptions
 import com.shinonometn.koemans.utils.isBoolean
@@ -9,11 +9,12 @@ import com.shinonometn.koemans.utils.isNumber
 import com.shinonometn.koemans.web.Validator
 import com.shinonometn.koemans.web.spring.route.KtorRoute
 import com.shinonometn.music.server.commons.CR
+import com.shinonometn.music.server.commons.businessError
 import com.shinonometn.music.server.commons.validationError
-import com.shinonometn.music.server.media.MediaScope
-import com.shinonometn.music.server.media.data.PlaylistData
-import com.shinonometn.music.server.media.data.PlaylistItemData
-import com.shinonometn.music.server.media.service.PlaylistService
+import com.shinonometn.music.server.library.LibraryScope
+import com.shinonometn.music.server.library.data.PlaylistData
+import com.shinonometn.music.server.library.data.PlaylistItemData
+import com.shinonometn.music.server.library.service.PlaylistService
 import com.shinonometn.music.server.platform.security.commons.*
 import com.shinonometn.music.server.platform.security.service.UserService
 import io.ktor.application.*
@@ -21,15 +22,14 @@ import io.ktor.http.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
-import org.jetbrains.exposed.sql.SortOrder
 import org.springframework.stereotype.Controller
 
 @Controller
-@KtorRoute("/api/playlist")
+@KtorRoute("/api/library/playlist")
 class UserPlaylistApi(private val playlistService: PlaylistService, private val userService: UserService) {
 
     @KtorRoute
-    fun Route.listPlaylists() = accessControl(MediaScope.PlayListRead) {
+    fun Route.listPlaylists() = accessControl(LibraryScope.PlaylistRead) {
         /** @restful_api_doc
          * # Get playlist
          * [GET] /api/playlist
@@ -38,21 +38,27 @@ class UserPlaylistApi(private val playlistService: PlaylistService, private val 
          * - Sort options
          * ## Sort options
          * - create_date: sort by create data
-         * - update_date: sort by udpate date
+         * - update_date: sort by update date
          * ## Returns
          * @bean(Page) with @bean(PlaylistData.Bean)
          * ```
          * { ..., content : [{ playlist: @bean(PlaylistData.Bean) }]}
          * ```
          */
+        // TODO: Support sort by subscribe date
         get {
             val identity = call.acUserIdentityNotNull
             val userId = identity.userId
             val paging = call.receivePageRequest()
             val sorting = call.receiveSortOptions(PlaylistData.sortingOptions)
+            val filtering = call.receiveFilterOptions(PlaylistData.filterOptions)
+
             call.respond(background {
-                playlistService.findAllByUserId(userId, paging).convert {
-                    mapOf("playlist" to it)
+                playlistService.findAllPlaylistBy(userId, paging, sorting, filtering).convert {
+                    mapOf(
+                        "playlist" to it.second,
+                        "subscription" to it.first
+                    )
                 }
             })
         }
@@ -89,7 +95,7 @@ class UserPlaylistApi(private val playlistService: PlaylistService, private val 
     }
 
     @KtorRoute
-    fun Route.createPlaylist() = accessControl(MediaScope.PlayListCreate) {
+    fun Route.createPlaylist() = accessControl(LibraryScope.PlaylistCreate) {
         /** @restful_api_doc
          * # Create Playlist
          * [POST] /api/playlist
@@ -131,7 +137,7 @@ class UserPlaylistApi(private val playlistService: PlaylistService, private val 
             val userIdentity = call.acUserIdentity ?: CR.Error.forbidden()
             if (result.creatorId != userIdentity.userId) CR.Error.forbidden("playlist_is_private")
             val appToken = call.appToken
-            if (appToken != null && !appToken.scope.contains(MediaScope.PlayListRead.scope)) CR.Error.forbidden()
+            if (appToken != null && !appToken.scope.contains(LibraryScope.PlaylistRead.scope)) CR.Error.forbidden()
         }
 
         val creator = userService.findProfileBeanOf(result.creatorId)
@@ -139,7 +145,7 @@ class UserPlaylistApi(private val playlistService: PlaylistService, private val 
     }
 
     @KtorRoute("/{id}")
-    fun Route.updatePlaylist() = accessControl(MediaScope.PlayListUpdate) {
+    fun Route.updatePlaylist() = accessControl(LibraryScope.PlaylistUpdate) {
         /** @restful_api_doc
          * # Update playlist base info
          * [POST] /api/playlist/{id}
@@ -166,7 +172,7 @@ class UserPlaylistApi(private val playlistService: PlaylistService, private val 
     }
 
     @KtorRoute("/{id}")
-    fun Route.deletePlaylist() = accessControl(MediaScope.PlayListDelete) {
+    fun Route.deletePlaylist() = accessControl(LibraryScope.PlaylistDelete) {
         /** @restful_api_doc
          * # Delete a playlist
          * [DELETE] /api/playlist/{id}
@@ -190,13 +196,8 @@ class UserPlaylistApi(private val playlistService: PlaylistService, private val 
         }
     }
 
-    private val playlistSortOptions = SortOptionMapping {
-        "order" associateTo PlaylistItemData.Table.colOrder defaultOrder SortOrder.DESC
-        "id" associateTo PlaylistItemData.Table.id defaultOrder SortOrder.DESC
-    }
-
     @KtorRoute("/{id}/item")
-    fun Route.listPlaylistItem() = accessControl(MediaScope.PlayListRead) {
+    fun Route.listPlaylistItem() = accessControl(LibraryScope.PlaylistRead) {
         /** @restful_api_doc
          * # Get items in playlist
          * [GET] /api/playlist/{id}/item
@@ -214,7 +215,7 @@ class UserPlaylistApi(private val playlistService: PlaylistService, private val 
         get {
             val id = call.parameters["id"]?.toLongOrNull() ?: validationError("invalid_id")
             val paging = call.receivePageRequest()
-            val sorting = call.receiveSortOptions(playlistSortOptions)
+            val sorting = call.receiveSortOptions(PlaylistItemData.sortOptions)
             val session = call.acUserIdentity
             val result = background {
                 val playList = playlistService.findById(id) ?: validationError("invalid_id")
@@ -240,7 +241,7 @@ class UserPlaylistApi(private val playlistService: PlaylistService, private val 
     }
 
     @KtorRoute("/{id}/item")
-    fun Route.addPlayListItem() = accessControl(MediaScope.PlayListUpdate) {
+    fun Route.addPlayListItem() = accessControl(LibraryScope.PlaylistUpdate) {
         /** @restful_api_doc
          * # Add item to playlist
          * [POST] /api/playlist/{id}/item
@@ -282,7 +283,7 @@ class UserPlaylistApi(private val playlistService: PlaylistService, private val 
     }
 
     @KtorRoute("/{id}/item")
-    fun Route.deletePlayListItem() = accessControl(MediaScope.PlayListDelete) {
+    fun Route.deletePlayListItem() = accessControl(LibraryScope.PlaylistDelete) {
         /** @restful_api_doc
          * # Delete playlist item
          * [DELETE] /api/playlist/{id}/item
@@ -317,7 +318,7 @@ class UserPlaylistApi(private val playlistService: PlaylistService, private val 
     }
 
     @KtorRoute("/{id}/item/{itemId}")
-    fun Route.movePlaylistItemAbove() = accessControl(MediaScope.PlayListUpdate) {
+    fun Route.movePlaylistItemAbove() = accessControl(LibraryScope.PlaylistUpdate) {
         /** @restful_api_doc
          * # Move playlist item above target item
          * [POST] /api/playlist/{id}/{itemId}?action=move_above&targetItemId={targetItemId}
@@ -346,7 +347,7 @@ class UserPlaylistApi(private val playlistService: PlaylistService, private val 
     }
 
     @KtorRoute("/{id}/item/{itemId}")
-    fun Route.movePlaylistItemBelow() = accessControl(MediaScope.PlayListUpdate) {
+    fun Route.movePlaylistItemBelow() = accessControl(LibraryScope.PlaylistUpdate) {
         param("action", "move_below") {
             /** @restful_api_doc
              * # Move playlist item below target item
@@ -371,6 +372,49 @@ class UserPlaylistApi(private val playlistService: PlaylistService, private val 
                 }
 
                 call.respond(CR.successOrFailed(result))
+            }
+        }
+    }
+
+    @KtorRoute
+    fun Route.subscribeOrUnsubscribePlaylist() = route("/{id}") {
+        /** @restful_api_doc
+         * # Subscribe playlist
+         * [POST] /api/playlist/{id}?subscribe
+         * ## Parameters
+         * - id: playlist id
+         * ## Returns
+         * Success or not
+         */
+        param("subscribe") {
+            accessControl(LibraryScope.PlaylistSubscribe) {
+                post {
+                    val playlistId = call.parameters["id"]?.toLongOrNull() ?: validationError("invalid_playlist_id")
+                    val userId = call.acUserIdentityNotNull.userId
+                    val playlist = playlistService.findById(playlistId) ?: businessError("playlist_not_found:$playlistId")
+                    if(playlist.isPrivate) businessError("playlist_is_private")
+                    if(playlist.creatorId == userId) return@post call.respond(CR.successOrFailed(false))
+                    val result = playlistService.subscribePlaylist(userId, playlistId)
+                    call.respond(CR.successOrFailed(result))
+                }
+            }
+        }
+
+        /** @restful_api_doc
+         * # Unsubscribe playlist
+         * [POST] /api/playlist/{id}?unsubscribe
+         * ## Parameters
+         * - id: playlist id
+         * ## Returns
+         * Success or not
+         */
+        param("unsubscribe") {
+            accessControl(LibraryScope.PlaylistUnsubscribe) {
+                post {
+                    val playlistId = call.parameters["id"]?.toLongOrNull() ?: validationError("invalid_playlist_id")
+                    val userId = call.acUserIdentityNotNull.userId
+                    call.respond(CR.successOrFailed(playlistService.unsubscribePlaylist(userId, playlistId)))
+                }
             }
         }
     }

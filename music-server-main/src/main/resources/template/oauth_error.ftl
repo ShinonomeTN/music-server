@@ -1,8 +1,8 @@
-[#-- @ftlvariable name="modalJson" type="String" --]
+[#-- @ftlvariable name="modelJson" type="String" --]
 <html lang="en-US">
 <head>
     <title>Music Server OAuth - Error</title>
-    [#include "common_headers.ftl"]
+    [#include "common/common_headers.ftl"]
 </head>
 <body>
 <div id="app" class="container-sm">
@@ -16,8 +16,8 @@
         </div>
     </div>
 </div>
-[#include "common_scripts.ftl"]
-<script src="auth/config/i18n.js"></script>
+[#include "common/common_scripts.ftl"]
+<script src="/config/i18n.js"></script>
 <script type="text/x-template" id="UserErrorPage">
     <div class="mt-3" style="text-align: center">
         <h2>{{message.title}}</h2>
@@ -50,7 +50,7 @@
     </div>
 </script>
 <script>
-  window.$MusicServer = [=modalJson]
+  window.$MusicServer = [=modelJson]
 
   const buttons = {
     "retry" : {

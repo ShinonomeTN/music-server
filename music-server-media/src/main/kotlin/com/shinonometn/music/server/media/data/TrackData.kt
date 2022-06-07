@@ -15,6 +15,10 @@ import java.time.LocalDateTime
 * Tracks in Album
 * */
 object TrackData {
+
+    fun entityIdOf(id : Long) : EntityID<Long> {
+        return EntityID(id, Table)
+    }
     fun listAll(paging: PageRequest): Page<Bean> {
         return Table.selectAll().pagingBy(paging) {
             Bean(Entity.wrapRow(it))

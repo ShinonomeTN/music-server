@@ -6,15 +6,11 @@ import com.shinonometn.koemans.web.ParamValidationException
 import com.shinonometn.koemans.web.spring.route.KtorRoute
 import com.shinonometn.ktor.server.access.control.accessControl
 import com.shinonometn.ktor.server.access.control.meta
-import com.shinonometn.music.server.commons.Jackson
-import com.shinonometn.music.server.commons.asLocalDateTime
-import com.shinonometn.music.server.commons.respondPair
-import com.shinonometn.music.server.commons.validationError
+import com.shinonometn.music.server.commons.*
 import com.shinonometn.music.server.platform.security.commons.*
 import com.shinonometn.music.server.platform.security.configuration.SecurityServiceConfiguration
 import com.shinonometn.music.server.platform.security.service.SecurityService
 import com.shinonometn.music.server.platform.security.service.UserService
-import freemarker.template.TemplateMethodModelEx
 import io.ktor.application.*
 import io.ktor.freemarker.*
 import io.ktor.http.*
@@ -37,43 +33,21 @@ class OAuthApi(
 ) {
     companion object {
         suspend fun respondOAuthError(call: ApplicationCall, message: String, parameters: Map<String, Any?>) {
-            val modal = mapOf(
-                "error" to mapOf(
-                    "message" to Base64.encodeBase64String(message.toByteArray()),
-                    "details" to parameters
-                ),
-            )
-
-            call.respond(
-                FreeMarkerContent(
+            call.respond(background {
+                CR.freemarker(
                     "oauth_error.ftl", mapOf(
-                        "modal" to modal,
-                        "modalJson" to background { Jackson.mapper.writeValueAsString(modal) }
+                        "error" to mapOf(
+                            "message" to Base64.encodeBase64String(message.toByteArray()),
+                            "details" to parameters
+                        ),
                     )
                 )
-            )
-        }
-    }
-
-    @KtorRoute("/config/{path...}")
-    fun Route.textResources() {
-        val scopeDescriptions = securityService.allScopes.associate { it.scope to it.descriptions }
-
-        val additionalFunctions = mapOf(
-            "scopeDescriptions" to TemplateMethodModelEx {
-                json.writeValueAsString(scopeDescriptions)
-            }
-        )
-        get {
-            val path = call.parameters.getAll("path")?.joinToString("/") { it } ?: ""
-            call.respond(FreeMarkerContent("text_resources.ftl", mapOf(
-                "path" to path,
-                "ext" to additionalFunctions
-            ), contentType = ContentType.Text.Any))
+            })
         }
     }
 
     private val acceptableScopeNames = securityService.allScopes.map { it.scope }
+
     @KtorRoute
     fun Route.oauth() {
         val tempSessionTimeoutSeconds = TimeUnit.MINUTES.toSeconds(5)
@@ -108,19 +82,15 @@ class OAuthApi(
                 return@get call.respondRedirect("/api/auth?${OAuthSession.ParameterKey}=${tempSession.sign(config.sessionSalt)}")
             }
 
-            val modal = mapOf(
-                "session" to mapOf(
-                    "userAgent" to requestForm.userAgent,
-                    "scopes" to requestForm.scope,
-                    "redirect" to requestForm.redirect
-                ),
-                "state" to "pre_login"
-            )
             call.respond(
-                FreeMarkerContent(
+                CR.freemarker(
                     "oauth_login.ftl", mapOf(
-                        "modal" to modal,
-                        "modalJson" to background { json.writeValueAsString(modal) }
+                        "session" to mapOf(
+                            "userAgent" to requestForm.userAgent,
+                            "scopes" to requestForm.scope,
+                            "redirect" to requestForm.redirect
+                        ),
+                        "state" to "pre_login"
                     )
                 )
             )
@@ -171,21 +141,13 @@ class OAuthApi(
 
                     if (!user.enabled) OAuthError.accountDisabled()
 
-                    val modal = mapOf(
+                    val model = mapOf(
                         "user" to user,
                         "session" to tempSession,
                         "sessionSigned" to tempSession.sign(config.sessionSalt),
                         "state" to "after_login",
                     )
-                    call.respond(
-                        FreeMarkerContent(
-                            "oauth_confirm.ftl",
-                            mapOf(
-                                "modal" to modal,
-                                "modalJson" to background { Jackson.mapper.writeValueAsString(modal) }
-                            )
-                        )
-                    )
+                    call.respond(background { CR.freemarker("oauth_confirm.ftl", model) })
                 }
             }
         }
@@ -208,21 +170,17 @@ class OAuthApi(
                 val stringToken = appToken.sign(config.appTokenSalt)
 
                 val redirect = tempSession.redirect
-                if (redirect != "internal") return@post call.respondRedirect("$redirect?state=success&token=${stringToken}&from=com.shinonometn.music.server", permanent = false)
+                if (redirect != "internal") return@post call.respondRedirect(
+                    "$redirect?state=success&token=${stringToken}&from=com.shinonometn.music.server",
+                    permanent = false
+                )
                 call.respondRedirect("/api/auth?state=success&token=${stringToken}&from=com.shinonometn.music.server", permanent = false)
             }
         }
 
         param("state", "success") {
             get {
-                call.respond(
-                    FreeMarkerContent(
-                        "oauth_success.ftl", mapOf(
-                            "modal" to "",
-                            "modalJson" to "{}"
-                        )
-                    )
-                )
+                call.respond(background { CR.freemarker("oauth_success.ftl", emptyMap()) })
             }
         }
     }

@@ -1,12 +1,9 @@
 package com.shinonometn.music.server.platform.security.commons
 
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.node.ObjectNode
 import com.shinonometn.ktor.server.access.control.AccessControlCheckerContext
 import com.shinonometn.ktor.server.access.control.accessControl
 import com.shinonometn.ktor.server.access.control.meta
 import com.shinonometn.music.server.commons.CR
-import com.shinonometn.music.server.platform.security.PlatformScope
 import com.shinonometn.music.server.platform.security.data.UserData
 import com.shinonometn.music.server.platform.security.data.permissionList
 import com.shinonometn.music.server.platform.security.data.roleList
@@ -19,7 +16,7 @@ typealias ACChecker = suspend AccessControlCheckerContext.() -> Unit
 interface ACScope {
     val scope: String
     val permission: ACChecker
-    val descriptions : ObjectNode
+    val descriptions : Map<String, String>
 }
 
 interface ACScopeAdvance : ACScope {

@@ -7,6 +7,7 @@ import com.shinonometn.music.server.commons.transformJsonNode
 import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
+import org.jetbrains.exposed.sql.Query
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.javatime.datetime
 import org.jetbrains.exposed.sql.selectAll
@@ -40,6 +41,10 @@ object AlbumData {
         return Table.selectAll().orderBy(sorting).pagingBy(paging) {
             Bean(Entity.wrapRow(it))
         }
+    }
+
+    fun entityIdOf(albumId: Long): EntityID<Long> {
+        return EntityID(albumId, Table)
     }
 
     object Table : LongIdMetaDataTable("tb_album_data") {

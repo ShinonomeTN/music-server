@@ -1,6 +1,7 @@
-package com.shinonometn.music.server.media.data
+package com.shinonometn.music.server.library.data
 
 import com.shinonometn.koemans.exposed.*
+import com.shinonometn.music.server.media.data.TrackData
 import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
@@ -12,6 +13,12 @@ import org.jetbrains.exposed.sql.statements.UpdateStatement
 import kotlin.math.abs
 
 object PlaylistItemData {
+
+    val sortOptions = SortOptionMapping {
+        "order" associateTo Table.colOrder defaultOrder SortOrder.DESC
+        "id" associateTo Table.id defaultOrder SortOrder.DESC
+    }
+
     fun deleteByPlayListId(playlistId: Long): Int {
         return Table.deleteWhere { Table.colPlayListId eq playlistId }
     }

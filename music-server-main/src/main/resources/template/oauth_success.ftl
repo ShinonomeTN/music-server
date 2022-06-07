@@ -1,8 +1,8 @@
-[#-- @ftlvariable name="modalJson" type="String" --]
+[#-- @ftlvariable name="modelJson" type="String" --]
 <html lang="en-US">
 <head>
     <title>Music Server OAuth - Finished</title>
-    [#include "common_headers.ftl"]
+    [#include "common/common_headers.ftl"]
 </head>
 <body>
 <div id="app" class="container-sm">
@@ -22,9 +22,9 @@
         </div>
     </div>
 </div>
-[#include "common_scripts.ftl"]
+[#include "common/common_scripts.ftl"]
 <script>
-  window.$MusicServer = [=modalJson]
+  window.$MusicServer = [=modelJson]
 
   window.$app = Vue.createApp({
     methods: {

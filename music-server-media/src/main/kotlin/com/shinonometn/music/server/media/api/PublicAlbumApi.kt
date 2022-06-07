@@ -20,6 +20,8 @@ import org.springframework.stereotype.Controller
 @KtorRoute("/api/meta/album")
 class PublicAlbumApi(private val trackService: TrackService, private val albumService: AlbumService) {
 
+    // TODO: Album webpage and preview
+
     @KtorRoute
     fun Route.albumApi() = accessControl(AC.Guest) {
         /** @restful_api_doc

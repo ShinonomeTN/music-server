@@ -18,6 +18,10 @@ import org.jetbrains.exposed.sql.update
 import java.time.LocalDateTime
 
 object UserData {
+    fun entityIdOf(id : Long) : EntityID<Long> {
+        return EntityID(id, Table)
+    }
+
     fun usernameExists(username: String): Boolean {
         return Table.select { Table.colUsername eq username }.forUpdate().count() > 0
     }
@@ -90,6 +94,10 @@ object UserData {
         val resources = entity.resources
         val createdAt = entity.createdAt
         val updatedAt = entity.updatedAt
+    }
+
+    fun profileBeanOf(entity : Entity) : Any {
+        return if(entity.privateProfile) PrivateProfileBean(entity) else PublicProfileBean(entity)
     }
 
     class PublicProfileBean(entity: Entity) {

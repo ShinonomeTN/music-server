@@ -1,9 +1,9 @@
-[#-- @ftlvariable name="modalJson" type="String" --]
+[#-- @ftlvariable name="modelJson" type="String" --]
 
 <html lang="en-US">
 <head>
     <title>Music Server OAuth - Confirm</title>
-    [#include "common_headers.ftl"]
+    [#include "common/common_headers.ftl"]
 </head>
 <body>
 <div id="app" class="container-sm">
@@ -28,7 +28,7 @@
             </div>
         </div>
         <form action="/api/auth?action=allow" method="post" style="width: 100%">
-            <input type="hidden" name="__ts" id="__ts" value="[=modal.sessionSigned]"/>
+            <input type="hidden" name="__ts" id="__ts" value="[=model.sessionSigned]"/>
             <button class="btn btn-primary" style="width: 100%">Allow</button>
         </form>
         <button class="btn btn-dark" @click="$emit('disallow')">Disallow</button>
@@ -44,9 +44,9 @@
     </div>
 </script>
 <script>
-  window.$MusicServer = [=modalJson]
+  window.$MusicServer = [=modelJson]
 </script>
-<script src="auth/config/scope_descriptions.js"></script>
+<script src="/config/scope_descriptions.js"></script>
 <script>
   window.$app = Vue.createApp({
     components: {

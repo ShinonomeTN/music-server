@@ -19,6 +19,7 @@ import org.springframework.stereotype.Controller
 @KtorRoute("/api/meta/track")
 class PublicTrackApi(private val trackService: TrackService) {
 
+    // TODO: Track webpage and preview
     @KtorRoute
     fun Route.trackApi() = accessControl(AC.Guest) {
         /** @restful_api_doc

@@ -9,7 +9,6 @@ import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.javatime.datetime
-import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.selectAll
 import java.time.LocalDateTime
 
@@ -50,9 +49,14 @@ object ArtistData {
         }
     }
 
+    fun entityIdOf(artistId: Long): EntityID<Long> {
+        return EntityID(artistId, Table)
+    }
+
     object Table : LongIdMetaDataTable("tb_artist_data") {
         val colName = varchar("name", 255)
         val colCreateDate = datetime("create_date").clientDefault { LocalDateTime.now() }
+        val colUpdateDate = datetime("update_date").clientDefault { LocalDateTime.now() }
     }
 
     class Entity(id : EntityID<Long>) : LongEntity(id) {

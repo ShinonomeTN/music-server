@@ -1,6 +1,10 @@
-package com.shinonometn.music.server.media.data
+package com.shinonometn.music.server.library.data
 
+import com.fasterxml.jackson.databind.JsonNode
 import com.shinonometn.koemans.exposed.*
+import com.shinonometn.music.server.commons.transformJsonNode
+import com.shinonometn.music.server.media.data.CoverArtData
+import com.shinonometn.music.server.platform.security.data.UserData
 import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
@@ -18,6 +22,10 @@ object PlaylistData {
         return Table.selectAll().pagingBy(paging) {
             Bean(Entity.wrapRow(it))
         }
+    }
+
+    fun updatePlaylistModifyDate(id : Long): Int {
+        return Table.update({ Table.id eq id }) { it[colUpdateAt] = LocalDateTime.now() }
     }
 
     fun isPlayListExists(id: Long): Boolean = Table.countBy(Table.id) {
@@ -74,10 +82,11 @@ object PlaylistData {
         "update_date" associateTo Table.colUpdateAt
     }
 
-    object Table : LongIdTable("tb_playlist") {
-        val colCreatorId = long("creator_id")
+    object Table : LongIdTable("tb_library_playlist") {
+        val colCreatorId = reference("creator_id", UserData.Table)
         val colIsPrivate = bool("is_private")
         val colName = varchar("name", 255)
+        val colMeta = text("meta").default("{}")
         val colDescription = text("description").default("")
         val colCoverArtId = reference("cover_art_id", CoverArtData.Table.id).nullable()
         val colCreatedAt = datetime("created_at").clientDefault { LocalDateTime.now() }
@@ -94,6 +103,7 @@ object PlaylistData {
         }
 
         var creatorId by Table.colCreatorId
+        val creator by UserData.Entity referencedOn Table.colCreatorId
         var isPrivate by Table.colIsPrivate
         var name by Table.colName
         var description by Table.colDescription
@@ -101,13 +111,16 @@ object PlaylistData {
         var coverArt by CoverArtData.Entity optionalReferencedOn Table.colCoverArtId
         val createdAt by Table.colCreatedAt
         var updateAt by Table.colUpdateAt
+        var meta: JsonNode by Table.colMeta.transformJsonNode()
     }
 
     class Bean(entity: Entity) {
         val id = entity.id.value
-        val creatorId = entity.creatorId
+        val creatorId = entity.creatorId.value
+        val creator = if(entity.creator.privateProfile) null else UserData.profileBeanOf(entity.creator)
         val isPrivate = entity.isPrivate
         val name = entity.name
+        val meta = entity.meta
         val description = entity.description
         val coverArtId = entity.coverArtId?.value
         val coverArt = entity.coverArt?.let { CoverArtData.Bean(it) }

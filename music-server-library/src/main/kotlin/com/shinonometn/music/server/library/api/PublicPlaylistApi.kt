@@ -1,26 +1,54 @@
-package com.shinonometn.music.server.media.api
+package com.shinonometn.music.server.library.api
 
 import com.shinonometn.koemans.coroutine.background
-import com.shinonometn.koemans.exposed.SortOptionMapping
 import com.shinonometn.koemans.receiveFilterOptions
 import com.shinonometn.koemans.receivePageRequest
 import com.shinonometn.koemans.receiveSortOptions
 import com.shinonometn.koemans.web.spring.route.KtorRoute
 import com.shinonometn.ktor.server.access.control.accessControl
-import com.shinonometn.music.server.media.data.PlaylistData
-import com.shinonometn.music.server.media.service.PlaylistService
+import com.shinonometn.music.server.commons.CR
+import com.shinonometn.music.server.commons.Jackson
+import com.shinonometn.music.server.commons.validationError
+import com.shinonometn.music.server.library.data.PlaylistData
+import com.shinonometn.music.server.library.data.PlaylistItemData
+import com.shinonometn.music.server.library.service.PlaylistService
 import com.shinonometn.music.server.platform.security.commons.AC
 import io.ktor.application.*
+import io.ktor.freemarker.*
 import io.ktor.response.*
 import io.ktor.routing.*
-import org.jetbrains.exposed.sql.SortOrder
 import org.springframework.stereotype.Controller
 
 @Controller
-@KtorRoute("/api/playlist")
 class PublicPlaylistApi(private val playlistService: PlaylistService) {
 
-    @KtorRoute
+    @KtorRoute("/api/playlist/{id}")
+    fun Route.getPlaylist() = accessControl(AC.Guest) {
+        get {
+            val playlistId = call.parameters["id"]?.toLongOrNull() ?: validationError("invalid_playlist_id")
+            val playlist = playlistService.findById(playlistId) ?: CR.Error.notFound("playlist_not_found:${playlistId}")
+            if(playlist.isPrivate) CR.Error.forbidden("playlist_is_private:${playlistId}")
+            val paging = call.receivePageRequest()
+            val sorting = call.receiveSortOptions(PlaylistItemData.sortOptions)
+            val playlistItemPage = playlistService.findAllPlaylistItem(playlistId,paging,sorting)
+            val map = mapOf(
+                "playlist" to playlist,
+                "itemPage" to playlistItemPage
+            )
+
+            call.respond(FreeMarkerContent("playlist.ftl", mapOf(
+                "model" to map,
+                "modelJson" to Jackson.mapper.writeValueAsString(map)
+            )))
+        }
+
+        // TODO: Playlist webpage preview
+//        get("/preview") {
+//
+//        }
+    }
+
+    @KtorRoute("/api/playlist")
     fun Route.getPublicPlaylist() = accessControl(AC.Guest) {
         param("public") {
             /** @restful_api_doc

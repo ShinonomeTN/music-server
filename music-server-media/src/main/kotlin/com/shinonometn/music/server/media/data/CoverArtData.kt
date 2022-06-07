@@ -1,7 +1,6 @@
 package com.shinonometn.music.server.media.data
 
 import com.shinonometn.koemans.exposed.*
-import com.shinonometn.music.server.media.data.AlbumData.Table.clientDefault
 import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
@@ -12,6 +11,11 @@ import org.jetbrains.exposed.sql.selectAll
 import java.time.LocalDateTime
 
 object CoverArtData {
+
+    fun entityIdOf(id : Long) : EntityID<Long> {
+        return EntityID(id, Table)
+    }
+
     fun findAll(paging: PageRequest): Page<Bean> {
         return Table.selectAll().pagingBy(paging) {
             Bean(Entity.wrapRow(it))

@@ -25,6 +25,6 @@ class MusicServerDocumentExtension {
     }
 
     companion object {
-        const val MODAL_NAME = "musicServerDocument"
+        const val MODEL_NAME = "musicServerDocument"
     }
 }
