@@ -142,7 +142,7 @@ object PlaylistItemData {
         }
     }
 
-    object Table : LongIdTable("tb_playlist_item") {
+    object Table : LongIdTable("tb_library_playlist_item") {
         val colPlayListId = long("playlist_id")
         val colTrackId = reference("track_id", TrackData.Table.id)
         val colOrder = long("order").default(0)
