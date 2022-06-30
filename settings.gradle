@@ -4,4 +4,5 @@ include 'music-server-commons'
 include 'music-server-platform'
 include 'music-server-media'
 include 'music-server-library'
+include 'music-server-searcher'
 
