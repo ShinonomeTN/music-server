@@ -1,9 +1,9 @@
 buildscript {
-    ext.kotlin_version = "1.4.32"
-    ext.ktor_version = '1.5.3'
+    ext.kotlin_version = "1.6.0"
+    ext.ktor_version = '1.6.8'
     ext.exposed_version = '0.36.1'
     ext.jackson_version = '2.10.3'
-    ext.koemans_version = '1.1.1-SNAPSHOT'
+    ext.koemans_version = '1.2-SNAPSHOT'
 
     ext.java_version = "1.8"
 }
@@ -16,9 +16,8 @@ allprojects {
     repositories {
         mavenLocal()
         mavenCentral()
-        maven {
-            url = "https://nexus.shinonometn.com/repository/maven-public/"
-        }
+        maven { url = "https://maven.pkg.github.com/shinonometn/koemans/" }
+        maven { url = "https://maven.pkg.github.com/shinonometn/ktor-server-access-control/" }
     }
 
     group = 'com.shinonometn'
