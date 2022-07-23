@@ -1,6 +1,7 @@
 package com.shinonometn.music.server.platform.security.service
 
 import com.shinonometn.koemans.exposed.database.SqlDatabase
+import com.shinonometn.music.server.commons.ignore
 import com.shinonometn.music.server.platform.PlatformInitAction
 import com.shinonometn.music.server.platform.security.commons.ACScope
 import com.shinonometn.music.server.platform.security.commons.ACScopeAdvance
@@ -39,7 +40,7 @@ class SecurityService(
                 if (clearCount > 0) logger.info("Clear $clearCount expired tokens and sessions.")
                 delay(5000)
             } catch (e: Exception) {
-                logger.info("Security service job meet exception.", e)
+                if(e !is CancellationException) logger.info("Security service job meet exception.", e)
             }
         }
     }
@@ -53,6 +54,6 @@ class SecurityService(
     @PreDestroy
     fun securityServiceJobStop() {
         if (job.isActive) job.cancel()
-        job.asCompletableFuture().join()
+        ignore(CancellationException::class) { job.asCompletableFuture().join() }
     }
 }
