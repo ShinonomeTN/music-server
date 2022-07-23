@@ -16,8 +16,7 @@ allprojects {
     repositories {
         mavenLocal()
         mavenCentral()
-        maven { url = "https://maven.pkg.github.com/shinonometn/koemans/" }
-        maven { url = "https://maven.pkg.github.com/shinonometn/ktor-server-access-control/" }
+        maven { url = "https://maven.pkg.github.com/shinonometn/maven-public/" }
     }
 
     group = 'com.shinonometn'
