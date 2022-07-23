@@ -14,6 +14,7 @@ import org.apache.commons.io.IOUtils
 import org.springframework.stereotype.Controller
 import java.awt.Color
 import java.io.ByteArrayOutputStream
+import java.util.*
 import javax.imageio.ImageIO
 
 @Controller
@@ -38,10 +39,9 @@ class PublicCoverArtApi(private val coverArtService: CoverArtService) {
 
         val width = parameters["width"]?.toIntOrNull()
         val height = parameters["height"]?.toIntOrNull()
-        val backgroundColor = parameters["background"]?.takeIf { it.matches(Regex("^#[A-Za-z0-9]{6}$")) }
+        val backgroundColor = parameters["background"]?.takeIf { it.matches(Regex("^#[A-Za-z\\d]{6}$")) }
         val cropMode = parameters["mode"]?.takeIf { allowedModes.contains(it) }
-        val type = parameters["type"]?.takeIf { allowedTypes.contains(it) }
-            ?.toLowerCase()
+        val type = parameters["type"]?.takeIf { allowedTypes.contains(it) }?.lowercase()
 
         fun isEmpty() = width == null && height == null && backgroundColor == null && cropMode == null && type == null
     }
@@ -49,7 +49,7 @@ class PublicCoverArtApi(private val coverArtService: CoverArtService) {
     private val pathSegmentBlackList = setOf(".", "..")
 
     @KtorRoute("/{path...}")
-    fun Route.getCoverArt() = accessControl(AC.Guest) {
+    fun Route.getCoverArt() = accessControl(AC.IsGuestAllowed) {
         /** @restful_api_doc
          * # Get cover art
          * [GET] /api/cover-art/{path}

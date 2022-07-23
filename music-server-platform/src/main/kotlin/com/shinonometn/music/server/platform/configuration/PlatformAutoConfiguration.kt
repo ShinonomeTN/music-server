@@ -31,7 +31,7 @@ open class PlatformAutoConfiguration {
     @KtorConfiguration
     fun Application.contentNegotiation() = install(ContentNegotiation) {
         jackson {
-            registerModule(KotlinModule())
+            registerModule(KotlinModule.Builder().build())
             registerModule(JavaTimeModule())
             disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
         }

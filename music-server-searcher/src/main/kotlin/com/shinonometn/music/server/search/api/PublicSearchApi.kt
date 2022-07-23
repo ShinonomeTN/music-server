@@ -15,7 +15,7 @@ import org.springframework.stereotype.Controller
 class PublicSearchApi(private val searchService: SearchService) {
 
     @KtorRoute("/api/search")
-    fun Route.publicSearch() = accessControl(AC.Guest) {
+    fun Route.publicSearch() = accessControl(AC.IsGuestAllowed) {
         get {
             val keyword = call.parameters["keyword"] ?: validationError("keyword_required")
             val paging = call.receivePageRequest()

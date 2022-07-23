@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.shinonometn.koemans.coroutine.background
 import com.shinonometn.koemans.web.ParamValidationException
 import com.shinonometn.koemans.web.spring.route.KtorRoute
+import com.shinonometn.ktor.server.access.control.AccessControlRequirement
 import com.shinonometn.ktor.server.access.control.accessControl
 import com.shinonometn.ktor.server.access.control.meta
 import com.shinonometn.music.server.commons.*
@@ -127,8 +128,11 @@ class OAuthApi(
             call.respondRedirect("/api/auth?${OAuthSession.ParameterKey}=${session.sign(config.sessionSalt)}")
         }
 
-
-        accessControl("TempSession", checker = { accept() }) {
+        val tempSessionRequirement = AccessControlRequirement(
+            listOf("TempSession"),
+            listOf { accept() }
+        )
+        accessControl(tempSessionRequirement) {
             // Confirming OAuth permissions
             param(OAuthSession.ParameterKey) {
                 // input : __ts
@@ -186,7 +190,7 @@ class OAuthApi(
     }
 
     @KtorRoute("/token/refresh")
-    fun Route.tokenRefresh() = accessControl("AppToken", checker = AC.HasToken) {
+    fun Route.tokenRefresh() = accessControl(AC.HasAppToken) {
         post {
             val token = call.appTokenNotNull
             val userAgent = call.request.userAgent() ?: validationError("user_agent_not_found")

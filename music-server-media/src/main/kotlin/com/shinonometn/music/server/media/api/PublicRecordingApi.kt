@@ -36,7 +36,7 @@ class PublicRecordingApi(private val recordingService: RecordingService) {
      * ```
      */
     @KtorRoute
-    fun Route.recordingApi() = accessControl(AC.Guest) {
+    fun Route.recordingApi() = accessControl(AC.IsGuestAllowed) {
         route("/track/{id}/recording") {
             get {
                 val id = call.parameters["id"]?.toLongOrNull() ?: businessError("id_should_be_number")

@@ -21,7 +21,7 @@ class PublicTrackApi(private val trackService: TrackService) {
 
     // TODO: Track webpage and preview
     @KtorRoute
-    fun Route.trackApi() = accessControl(AC.Guest) {
+    fun Route.trackApi() = accessControl(AC.IsGuestAllowed) {
         /** @restful_api_doc
          * # Get all tracks
          * [GET] /api/meta/track

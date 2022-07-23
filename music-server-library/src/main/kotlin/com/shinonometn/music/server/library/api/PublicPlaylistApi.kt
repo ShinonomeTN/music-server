@@ -23,7 +23,7 @@ import org.springframework.stereotype.Controller
 class PublicPlaylistApi(private val playlistService: PlaylistService) {
 
     @KtorRoute("/api/playlist/{id}")
-    fun Route.getPlaylist() = accessControl(AC.Guest) {
+    fun Route.getPlaylist() = accessControl(AC.IsGuestAllowed) {
         get {
             val playlistId = call.parameters["id"]?.toLongOrNull() ?: validationError("invalid_playlist_id")
             val playlist = playlistService.findById(playlistId) ?: CR.Error.notFound("playlist_not_found:${playlistId}")
@@ -49,7 +49,7 @@ class PublicPlaylistApi(private val playlistService: PlaylistService) {
     }
 
     @KtorRoute("/api/playlist")
-    fun Route.getPublicPlaylist() = accessControl(AC.Guest) {
+    fun Route.getPublicPlaylist() = accessControl(AC.IsGuestAllowed) {
         param("public") {
             /** @restful_api_doc
              * # Get all public playlist

@@ -1,6 +1,7 @@
 package com.shinonometn.music.server.platform.security.commons
 
 import com.shinonometn.ktor.server.access.control.AccessControlCheckerContext
+import com.shinonometn.ktor.server.access.control.AccessControlRequirement
 import com.shinonometn.ktor.server.access.control.accessControl
 import com.shinonometn.ktor.server.access.control.meta
 import com.shinonometn.music.server.commons.CR
@@ -16,13 +17,15 @@ typealias ACChecker = suspend AccessControlCheckerContext.() -> Unit
 interface ACScope {
     val scope: String
     val permission: ACChecker
-    val descriptions : Map<String, String>
+    val descriptions: Map<String, String>
 }
 
 interface ACScopeAdvance : ACScope {
-    val grantCondition : (UserData.Bean) -> Boolean
+    val grantCondition: (UserData.Bean) -> Boolean
 }
+
 fun <T : ACScope> Collection<T>.scopeDescriptions() = map { it.descriptions }
+
 object AC {
     object Constants {
         const val SUPER_ADMIN = "super_admin"
@@ -30,21 +33,24 @@ object AC {
         const val ROLE = "role"
     }
 
-    val HasToken: ACChecker = {
-        if (meta<AppToken>() != null) accept() else reject()
-    }
+    val HasAppToken = AccessControlRequirement(
+        listOf("AppToken"),
+        listOf { if (meta<AppToken>() != null) accept() else reject() }
+    )
 
-    val Guest: ACChecker = {
+    val IsGuestAllowed: ACChecker = {
         if (meta<GuestToken>() != null || hasIdentity()) accept() else reject()
     }
 
-    val HasSession: ACChecker = {
-        if (meta<UserSession>() != null) accept() else reject()
-    }
+    val HasUserSession = AccessControlRequirement(
+        listOf("UserSession"),
+        listOf { if (meta<UserSession>() != null) accept() else reject() }
+    )
 
-    val HasIdentity: ACChecker = {
-        if (meta<UserIdentity>() != null) accept() else reject()
-    }
+    val HasUserIdentity = AccessControlRequirement(
+        listOf("UserIdentity"),
+        listOf { if (meta<UserIdentity>() != null) accept() else reject() }
+    )
 }
 
 fun AccessControlCheckerContext.isSuperAdmin(): Boolean {
@@ -52,11 +58,11 @@ fun AccessControlCheckerContext.isSuperAdmin(): Boolean {
     return user.isSuperAdmin()
 }
 
-fun UserData.Bean.isSuperAdmin() : Boolean {
+fun UserData.Bean.isSuperAdmin(): Boolean {
     return roleList().contains(AC.Constants.SUPER_ADMIN)
 }
 
-fun UserData.Bean.hasPermission(vararg permission : String) : Boolean {
+fun UserData.Bean.hasPermission(vararg permission: String): Boolean {
     val permissionList = permissionList().takeIf { it.isNotEmpty() } ?: return false
     val given = permission.takeIf { it.isNotEmpty() } ?: return false
     return permissionList.containsAll(given.toList())
@@ -105,5 +111,5 @@ val ApplicationCall.acUserIdentityNotNull: UserIdentity
 
 @ContextDsl
 fun Route.accessControl(checker: ACScope, builder: Route.() -> Unit): Route {
-    return accessControl(builder = builder, checker = checker.permission, providerNames = emptyArray())
+    return accessControl(AccessControlRequirement(emptyList(), listOf(checker.permission)), builder)
 }

@@ -23,7 +23,7 @@ class PublicAlbumApi(private val trackService: TrackService, private val albumSe
     // TODO: Album webpage and preview
 
     @KtorRoute
-    fun Route.albumApi() = accessControl(AC.Guest) {
+    fun Route.albumApi() = accessControl(AC.IsGuestAllowed) {
         /** @restful_api_doc
          * # Get all albums
          * [GET] /api/meta/album

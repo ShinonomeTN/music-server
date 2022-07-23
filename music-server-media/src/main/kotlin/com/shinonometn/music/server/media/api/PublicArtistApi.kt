@@ -21,7 +21,7 @@ class PublicArtistApi(private val artistServcie: ArtistService) {
 
     // TODO: Artist webpage and preview
     @KtorRoute
-    fun Route.artistApi() = accessControl(AC.Guest) {
+    fun Route.artistApi() = accessControl(AC.IsGuestAllowed) {
         /** @restful_api_doc
          * # Get all artist
          * [GET] /api/meta/artist

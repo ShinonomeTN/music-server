@@ -4,20 +4,19 @@ import com.shinonometn.koemans.spring.find
 import com.shinonometn.koemans.web.spring.configuration.KtorConfiguration
 import com.shinonometn.koemans.web.spring.springContext
 import com.shinonometn.ktor.server.access.control.AccessControl
+import com.shinonometn.music.server.commons.nullIfError
 import com.shinonometn.music.server.platform.security.PlatformScope
 import com.shinonometn.music.server.platform.security.api.OAuthSession
-import com.shinonometn.music.server.platform.security.commons.ACScope
-import com.shinonometn.music.server.platform.security.commons.UserIdentity
+import com.shinonometn.music.server.platform.security.commons.*
 import com.shinonometn.music.server.platform.security.service.UserService
+import com.shinonometn.music.server.platform.settings.PlatformSetting
 import io.ktor.application.*
 import io.ktor.features.*
 import io.ktor.http.*
-import io.ktor.request.*
 import io.ktor.response.*
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import java.util.Collections
 import java.util.concurrent.TimeUnit
 
 @Configuration
@@ -52,54 +51,52 @@ open class SecurityServiceConfiguration {
         get() = System.currentTimeMillis() + sessionTimeoutMillis
 
     @Bean
-    open fun platformScopes() : Collection<ACScope> = PlatformScope.values().toList() + PlatformScope.Admin.values()
+    open fun platformScopes(): Collection<ACScope> = PlatformScope.values().toList() + PlatformScope.Admin.values()
 
     @KtorConfiguration
     fun Application.accessControl() = install(AccessControl) {
         val config = springContext.find<SecurityServiceConfiguration>()
         val userService = springContext.find<UserService>()
-        provider("Guest") {
-            it.put(com.shinonometn.music.server.platform.security.commons.GuestToken)
+        val settings = springContext.find<PlatformSetting>()
+
+        addMetaExtractor("Guest") {
+            if (settings.allowGuest == true) addMeta(GuestToken)
         }
 
-        provider("UserSession") {
-            val cookie = call.request.cookies["session"] ?: return@provider
-            val session = try {
-                com.shinonometn.music.server.platform.security.commons.UserSession.from(cookie, config.sessionSalt)
-            } catch (e: Exception) {
-                // Ignore
-                return@provider
+        addMetaExtractor("UserSession") {
+            request.cookies["session"]?.let { session ->
+                nullIfError {
+                    UserSession.from(session, config.sessionSalt)
+                }?.takeIf { userService.isSessionValid(it.sessionId) }
+            }?.let(::addMeta)
+        }
+
+        addMetaExtractor("AppToken") {
+            request.headers["X-APP-TOKEN"]?.let { token ->
+                nullIfError {
+                    AppToken.from(token, config.appTokenSalt)
+                }?.takeIf { userService.isAppTokenValid(it.tokenId) }
+            }?.let(::addMeta)
+        }
+
+        addMetaExtractor("User") {
+            meta.filterIsInstance<UserIdentity>().firstOrNull()?.let { identity ->
+                userService.findUserById(identity.userId)?.takeIf { it.enabled }
+            }?.let(::addMeta)
+        }
+
+        addMetaExtractor("TempSession") {
+            request.origin.uri.takeIf { it.startsWith("/api/auth") }?.run {
+                addMeta(
+                    OAuthSession.from(
+                        request.call.parameters[OAuthSession.ParameterKey],
+                        config.sessionSalt
+                    )
+                )
             }
-            if (!userService.isSessionValid(session.sessionId)) return@provider
-            it.put(session)
         }
 
-        provider("AppToken") {
-            val token = call.request.headers["X-APP-TOKEN"] ?: return@provider
-            val appToken = try {
-                com.shinonometn.music.server.platform.security.commons.AppToken.from(token, config.appTokenSalt)
-            } catch (e: Exception) {
-                // Ignore
-                return@provider
-            }
-            if (!userService.isAppTokenValid(appToken.tokenId)) return@provider
-            it.put(appToken)
-        }
-
-        provider("User") { context ->
-            val identity = context.meta.filterIsInstance<UserIdentity>().firstOrNull() ?: return@provider
-            val user = userService.findUserById(identity.userId)?.takeIf { it.enabled } ?: return@provider
-            context.put(user)
-        }
-
-        provider("TempSession") { context ->
-            call.request.origin.uri.takeIf { it.startsWith("/api/auth") } ?: return@provider
-            val ts = call.parameters[OAuthSession.ParameterKey] ?: return@provider
-            val session = OAuthSession.from(ts, config.sessionSalt)
-            context.put(session)
-        }
-
-        onUnAuthorized {
+        unauthorized {
             if (it.rejectReasons().isNotEmpty()) {
                 call.respond(HttpStatusCode.Forbidden, mapOf("error" to "forbidden") + it.rejectReasons())
             } else {

@@ -69,7 +69,7 @@ class LoginApi(
     }
 
     @KtorRoute("/login/refresh")
-    fun Route.refreshSession() = accessControl("UserSession", checker = AC.HasSession) {
+    fun Route.refreshSession() = accessControl(AC.HasUserSession) {
         /** @restful_api_doc
          * # Refresh user session
          * [POST] /api/auth/login/refresh
@@ -95,7 +95,7 @@ class LoginApi(
     }
 
     @KtorRoute("/logout")
-    fun Route.logout() = accessControl("UserSession", checker = AC.HasSession) {
+    fun Route.logout() = accessControl(AC.HasUserSession) {
         /** @restful_api_doc
          * # User logout
          * [POST] /api/auth/logout
