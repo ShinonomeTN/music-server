@@ -33,24 +33,24 @@ object AC {
         const val ROLE = "role"
     }
 
-    val HasAppToken = AccessControlRequirement(
-        listOf("AppToken"),
-        listOf { if (meta<AppToken>() != null) accept() else reject() }
-    )
+    val HasAppToken = AccessControlRequirement.builder()
+        .provider("AppToken")
+        .checker { if (meta<AppToken>() != null) accept() else reject() }
+        .build()
 
     val IsGuestAllowed: ACChecker = {
         if (meta<GuestToken>() != null || hasIdentity()) accept() else reject()
     }
 
-    val HasUserSession = AccessControlRequirement(
-        listOf("UserSession"),
-        listOf { if (meta<UserSession>() != null) accept() else reject() }
-    )
+    val HasUserSession = AccessControlRequirement.builder()
+        .provider("UserSession")
+        .checker { if (meta<UserSession>() != null) accept() else reject() }
+        .build()
 
-    val HasUserIdentity = AccessControlRequirement(
-        listOf("UserIdentity"),
-        listOf { if (meta<UserIdentity>() != null) accept() else reject() }
-    )
+    val HasUserIdentity = AccessControlRequirement.builder()
+        .provider("UserIdentity")
+        .checker { if (meta<UserIdentity>() != null) accept() else reject() }
+        .build()
 }
 
 fun AccessControlCheckerContext.isSuperAdmin(): Boolean {
