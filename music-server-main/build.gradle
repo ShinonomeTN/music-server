@@ -7,7 +7,6 @@ description = "Music server main"
 mainClassName = "com.shinonometn.music.server.MainKt"
 
 dependencies {
-    implementation project(':music-server-commons')
     implementation project(':music-server-platform')
     implementation project(':music-server-media')
     implementation project(':music-server-library')
